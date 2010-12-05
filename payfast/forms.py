@@ -3,10 +3,10 @@ from django import forms
 from payfast.conf import LIVE_URL, SANDBOX_URL, TEST_MODE, MERCHANT_ID, MERCHANT_KEY
 from payfast.models import notify_url, PayFastOrder
 
-def signature_string(fields, value_getter=None)
+def signature_string(fields, value_getter=None):
     def _val(field_name):
         return fields[field_name].initial
-    _val = value_getter of _val
+    _val = value_getter or _val
     return "&".join(["%s=%s" % (name, _val(name),) for name in fields if _val(name)])
 
 def siganture(fields):
