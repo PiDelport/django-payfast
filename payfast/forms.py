@@ -64,11 +64,6 @@ class PayFastForm(HiddenForm):
     # Security
     signature = forms.CharField()
 
-    def get_signature(self):
-        for field_name in self.fields:
-            if self.fields
-
-
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         if user:
