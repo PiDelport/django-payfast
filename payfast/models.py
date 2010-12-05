@@ -10,7 +10,7 @@ def full_url(link):
     current_site = Site.objects.get_current()
     return current_site.domain + link
 
-def data_url(gateway):
+def notify_url():
     return full_url(reverse('payfast_notify'))
 
 
