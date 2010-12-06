@@ -75,7 +75,7 @@ Example::
     from payfast.forms import PayFastForm
 
     @login_required
-    def pay_with_payfast(request, order_id)
+    def pay_with_payfast(request, order_id):
 
         # Order model have to be defined by user, it is not a part
         # of django-payfast
