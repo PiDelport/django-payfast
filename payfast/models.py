@@ -8,7 +8,10 @@ from payfast import readable_models
 
 def full_url(link):
     current_site = Site.objects.get_current()
-    return current_site.domain + link
+    url = current_site.domain + link
+    if not url.startswith('http'):
+        url = 'http://' + url
+    return url
 
 def notify_url():
     return full_url(reverse('payfast_notify'))
@@ -21,13 +24,13 @@ class PayFastOrder(models.Model):
 
     # Transaction Details
     m_payment_id = models.AutoField(primary_key=True)
-    pf_payment_id = models.CharField(max_length=40, unique=True)
-    payment_status = models.CharField(max_length=20)
+    pf_payment_id = models.CharField(max_length=40, unique=True, null=True, blank=True)
+    payment_status = models.CharField(max_length=20, null=True, blank=True)
     item_name = models.CharField(max_length=100)
     item_description = models.CharField(max_length=255, null=True, blank=True)
-    amount_gross = models.DecimalField(max_digits=15, decimal_places=2)
-    amount_fee = models.DecimalField(max_digits=15, decimal_places=2)
-    amount_net = models.DecimalField(max_digits=15, decimal_places=2)
+    amount_gross = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    amount_fee = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    amount_net = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
 
     # The series of 5 custom string variables (custom_str1, custom_str2...)
     # originally passed by the receiver during the payment request.

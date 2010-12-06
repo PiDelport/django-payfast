@@ -1,16 +1,17 @@
 from hashlib import md5
+from urllib import urlencode
 from django import forms
+from django.utils.datastructures import SortedDict
 from payfast.conf import LIVE_URL, SANDBOX_URL, TEST_MODE, MERCHANT_ID, MERCHANT_KEY
 from payfast.models import notify_url, PayFastOrder
 
-def signature_string(fields, value_getter=None):
-    def _val(field_name):
-        return fields[field_name].initial
-    _val = value_getter or _val
-    return "&".join(["%s=%s" % (name, _val(name),) for name in fields if _val(name)])
+def signature_string(data):
+    values = [(k, unicode(data[k]).encode('utf8'),) for k in data if data[k]]
+    return urlencode(values)
 
 def siganture(fields):
-    return md5(signature_string(fields)).hexdigest()
+    text = signature_string(fields)
+    return md5(text).hexdigest()
 
 class HiddenForm(forms.Form):
     """ A form with all fields hidden """
@@ -27,12 +28,12 @@ class PayFastForm(HiddenForm):
     target = LIVE_URL if TEST_MODE else SANDBOX_URL
 
     # Receiver Details
-    merchant_id = forms.CharField(initial = MERCHANT_ID)
-    merchant_key = forms.CharField(initial = MERCHANT_KEY)
+    merchant_id = forms.CharField()
+    merchant_key = forms.CharField()
 
-    return_url = forms.URLField(verify_exists=False, required=False)
-    cancel_url = forms.URLField(verify_exists=False, required=False)
-    notify_url = forms.CharField(initial = notify_url())
+    return_url = forms.URLField()
+    cancel_url = forms.URLField()
+    notify_url = forms.URLField()
 
     # Payer Details
     name_first = forms.CharField()
@@ -71,12 +72,25 @@ class PayFastForm(HiddenForm):
             kwargs['initial'].setdefault('name_last', user.last_name)
             kwargs['initial'].setdefault('email_address', user.email)
 
+        kwargs['initial'].setdefault('notify_url', notify_url())
+        kwargs['initial'].setdefault('merchant_id', MERCHANT_ID)
+        kwargs['initial'].setdefault('merchant_key', MERCHANT_KEY)
+
         super(PayFastForm, self).__init__(*args, **kwargs)
 
         # new order reference number is issued each time form is instantiated
-        self.order = PayFastOrder.objects.create(user=user)
-        self.fields['m_payment_id'].initial = self.order.pk
-        self.fields['signature'].initial = siganture(self.fields)
+        self.order = PayFastOrder.objects.create(
+            user=user,
+            amount_gross = self.initial['amount'],
+        )
+
+        self.initial['m_payment_id'] = self.order.pk
+
+        # we need self.initial but it is unordered
+        data = SortedDict()
+        for key in self.fields.keys():
+            data[key] = self.initial.get(key, None)
+        self.fields['signature'].initial = siganture(data)
 
 
 class NotifyForm(forms.ModelForm):
