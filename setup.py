@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
     name='django-payfast',
-    version='0.1.0',
+    version='0.0.1',
     author='Mikhail Korobov',
     author_email='kmike84@gmail.com',
 
@@ -16,7 +16,7 @@ setup(
     long_description = open('README.rst').read().decode('utf8'),
 
     classifiers=(
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 2 - Pre-Alpha',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',

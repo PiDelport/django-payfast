@@ -2,8 +2,9 @@ from hashlib import md5
 from urllib import urlencode
 from django import forms
 from django.utils.datastructures import SortedDict
-from payfast.conf import LIVE_URL, SANDBOX_URL, TEST_MODE, MERCHANT_ID, MERCHANT_KEY
 from payfast.models import notify_url, PayFastOrder
+from payfast.conf import LIVE_URL, SANDBOX_URL, TEST_MODE
+from payfast.conf import MERCHANT_ID, MERCHANT_KEY, IP_HEADER, IP_ADDRESSES
 
 def signature_string(data):
     values = [(k, unicode(data[k]).encode('utf8'),) for k in data if data[k]]
@@ -95,6 +96,16 @@ class PayFastForm(HiddenForm):
 
 class NotifyForm(forms.ModelForm):
 
+    def __init__(self, request, *args, **kwargs):
+        self.request = request
+        super(NotifyForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        self.ip = self.request.META.get(IP_HEADER, None)
+        if self.ip not in IP_ADDRESSES:
+            raise forms.ValidationError('untrusted ip: %s' % self.ip)
+        return self.cleaned_data
+
     def plain_errors(self):
         ''' plain error list (without the html) '''
         return '|'.join(["%s: %s" % (k, (v[0])) for k, v in self.errors.items()])
@@ -103,3 +114,4 @@ class NotifyForm(forms.ModelForm):
         model = PayFastOrder
         exclude = ['created_at', 'updated_at', 'request_ip', 'debug_info',
                    'trusted', 'user']
+
