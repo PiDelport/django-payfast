@@ -120,7 +120,7 @@ Please note that it's up to you to implement the order processing logic.
 Order handling should be performed in ``payfast.signals.data`` signal handler.
 
 ``payfast.signals.notify`` signal
--------------------------------
+---------------------------------
 
 When PayFast posts data to the Notify URL ``payfast.signals.notify`` signal
 is sent. This signal won't be sent for suspicious data (when request is
