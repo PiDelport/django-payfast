@@ -12,7 +12,7 @@ setup(
     url='http://bitbucket.org/kmike/django-payfast/',
     download_url = 'http://bitbucket.org/kmike/django-payfast/get/tip.gz',
     license = 'MIT license',
-    description = 'A pluggable Django application for integrating netcash.co.za payment system.',
+    description = 'A pluggable Django application for integrating payfast.co.za payment system.',
     long_description = open('README.rst').read().decode('utf8'),
 
     classifiers=(
