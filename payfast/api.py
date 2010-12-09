@@ -24,7 +24,6 @@ def data_is_valid(raw_post_data, postback_url=POSTBACK_URL):
     Validates data via the postback. Returns True if data is valid,
     False if data is invalid and None if the request failed.
     """
-    import ipdb; ipdb.set_trace()
     try:
         response = urllib2.urlopen(postback_url, raw_post_data).read()
     except urllib2.HTTPError:
