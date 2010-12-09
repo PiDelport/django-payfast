@@ -44,6 +44,8 @@ class NotifyTest(TestCase):
     def setUp(self):
         conf.IP_ADDRESSES = ['127.0.0.1']
         conf.USE_POSTBACK = False
+        conf.MERCHANT_ID = '10000100'
+        conf.REQUIRE_AMOUNT_MATCH = True
 
         def handler(sender, **kwargs):
             handler.called = True
