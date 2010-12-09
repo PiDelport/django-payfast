@@ -4,8 +4,6 @@ django-payfast
 
 A pluggable Django application for integrating payfast.co.za payment system.
 
-** Please note this app is not ready! **
-
 Install
 =======
 
