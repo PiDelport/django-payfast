@@ -135,7 +135,7 @@ Example::
     def data_received(sender, **kwargs):
         payfast_order = kwargs['order']
 
-        if payfast_order.payment_status == 'COMPLETED':
+        if payfast_order.payment_status == 'COMPLETE':
 
             # The order is paid (merchant_id check and check for duplicate
             # payments is already handled by django-payfast)
