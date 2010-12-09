@@ -6,6 +6,7 @@ from django.utils.datastructures import SortedDict
 from payfast.forms import notify_url, PayFastForm
 from payfast.models import PayFastOrder
 from payfast.api import siganture
+from payfast import conf
 import payfast.signals
 
 def _test_data():
@@ -41,6 +42,9 @@ class SignatureTest(unittest.TestCase):
 class NotifyTest(TestCase):
 
     def setUp(self):
+        conf.IP_ADDRESSES = ['127.0.0.1']
+        conf.USE_POSTBACK = False
+
         def handler(sender, **kwargs):
             handler.called = True
         handler.called = False

@@ -5,9 +5,9 @@ from django.contrib.sites.models import Site
 
 from payfast.models import PayFastOrder
 from payfast.api import siganture, data_is_valid
-from payfast.conf import (LIVE_URL, SANDBOX_URL, TEST_MODE,
-                          REQUIRE_AMOUNT_MATCH, USE_POSTBACK,
-                          MERCHANT_ID, MERCHANT_KEY, IP_HEADER, IP_ADDRESSES)
+from payfast import conf
+
+TARGET_URL = conf.LIVE_URL if not conf.TEST_MODE else conf.SANDBOX_URL
 
 def full_url(link):
     current_site = Site.objects.get_current()
@@ -37,7 +37,7 @@ class PayFastForm(HiddenForm):
     will be filled automatically if they are not passed with 'initial'.
     """
 
-    target = LIVE_URL if TEST_MODE else SANDBOX_URL
+    target = TARGET_URL
 
     # Receiver Details
     merchant_id = forms.CharField()
@@ -85,8 +85,8 @@ class PayFastForm(HiddenForm):
             kwargs['initial'].setdefault('email_address', user.email)
 
         kwargs['initial'].setdefault('notify_url', notify_url())
-        kwargs['initial'].setdefault('merchant_id', MERCHANT_ID)
-        kwargs['initial'].setdefault('merchant_key', MERCHANT_KEY)
+        kwargs['initial'].setdefault('merchant_id', conf.MERCHANT_ID)
+        kwargs['initial'].setdefault('merchant_key', conf.MERCHANT_KEY)
 
         super(PayFastForm, self).__init__(*args, **kwargs)
 
@@ -114,11 +114,11 @@ class NotifyForm(forms.ModelForm):
         assert self.instance.pk
 
     def clean(self):
-        self.ip = self.request.META.get(IP_HEADER, None)
-        if self.ip not in IP_ADDRESSES:
+        self.ip = self.request.META.get(conf.IP_HEADER, None)
+        if self.ip not in conf.IP_ADDRESSES:
             raise forms.ValidationError('untrusted ip: %s' % self.ip)
 
-        if USE_POSTBACK:
+        if conf.USE_POSTBACK:
             if not data_is_valid(self.request.raw_post_data):
                 raise forms.ValidationError('Request validation fails')
 
@@ -126,13 +126,13 @@ class NotifyForm(forms.ModelForm):
 
     def clean_merchant_id(self):
         merchant_id = self.cleaned_data['merchant_id']
-        if merchant_id != MERCHANT_ID:
+        if merchant_id != conf.MERCHANT_ID:
             raise forms.ValidationError('Invalid merchant id (%s).' % merchant_id)
         return merchant_id
 
     def clean_amount_gross(self):
         received = self.cleaned_data['amount_gross']
-        if REQUIRE_AMOUNT_MATCH:
+        if conf.REQUIRE_AMOUNT_MATCH:
             requested = self.instance.amount_gross
             if requested != received:
                 raise forms.ValidationError('Amount is not the same: %s != %s' % (

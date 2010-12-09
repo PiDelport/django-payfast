@@ -9,8 +9,6 @@ sys.path.insert(0, join('..'))
 
 PAYFAST_MERCHANT_ID = '10000100'
 PAYFAST_MERCHANT_KEY = '46f0cd694581a'
-PAYFAST_IP_ADDRESSES = ['127.0.0.1']
-PAYFAST_USE_POSTBACK = False
 
 # ===========================
 
