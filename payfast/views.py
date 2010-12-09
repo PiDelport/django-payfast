@@ -33,10 +33,6 @@ def notify_handler(request):
         order.save()
         raise Http404
 
-    order = form.save(commit=False)
-    order.request_ip = ip
-    order.debug_info = request.raw_post_data
-    order.trusted = True
-    order.save()
-    signals.data.send(sender = notify_handler, order=order)
+    order = form.save()
+    signals.notify.send(sender = notify_handler, order=order)
     return HttpResponse()

@@ -106,6 +106,12 @@ class NotifyForm(forms.ModelForm):
             raise forms.ValidationError('untrusted ip: %s' % self.ip)
         return self.cleaned_data
 
+    def save(self, *args, **kwargs):
+        self.instance.request_ip = self.ip
+        self.instance.debug_info = self.request.raw_post_data
+        self.instance.trusted = True
+        return super(NotifyForm, self).save(*args, **kwargs)
+
     def plain_errors(self):
         ''' plain error list (without the html) '''
         return '|'.join(["%s: %s" % (k, (v[0])) for k, v in self.errors.items()])
