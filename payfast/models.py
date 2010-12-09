@@ -92,5 +92,5 @@ class PayFastOrder(models.Model):
         return u'PayFastOrder #%s (%s)' % (self.pk, self.created_at)
 
     class Meta:
-        verbose_name = 'PayFastOrder order'
-        verbose_name_plural = 'PayFastOrder orders'
+        verbose_name = 'PayFast order'
+        verbose_name_plural = 'PayFast orders'
