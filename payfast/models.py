@@ -1,21 +1,8 @@
 from datetime import datetime
 from django.db import models
-from django.core.urlresolvers import reverse
-from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
 
 from payfast import readable_models
-
-def full_url(link):
-    current_site = Site.objects.get_current()
-    url = current_site.domain + link
-    if not url.startswith('http'):
-        url = 'http://' + url
-    return url
-
-def notify_url():
-    return full_url(reverse('payfast_notify'))
-
 
 class PayFastOrder(models.Model):
 

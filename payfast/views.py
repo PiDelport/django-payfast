@@ -1,6 +1,4 @@
-#coding: utf-8
 from django.http import HttpResponse, Http404
-from django.views.generic.simple import direct_to_template
 from django.shortcuts import get_object_or_404
 
 try:
@@ -11,7 +9,6 @@ except ImportError: # django < 1.2
 from payfast.forms import NotifyForm
 from payfast.models import PayFastOrder
 from payfast import signals
-from payfast.conf import IP_HEADER, IP_ADDRESSES
 
 @csrf_exempt
 def notify_handler(request):

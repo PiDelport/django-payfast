@@ -1,18 +1,23 @@
-from hashlib import md5
-from urllib import urlencode
 from django import forms
 from django.utils.datastructures import SortedDict
-from payfast.models import notify_url, PayFastOrder
-from payfast.conf import LIVE_URL, SANDBOX_URL, TEST_MODE
-from payfast.conf import MERCHANT_ID, MERCHANT_KEY, IP_HEADER, IP_ADDRESSES
+from django.core.urlresolvers import reverse
+from django.contrib.sites.models import Site
 
-def signature_string(data):
-    values = [(k, unicode(data[k]).encode('utf8'),) for k in data if data[k]]
-    return urlencode(values)
+from payfast.models import PayFastOrder
+from payfast.api import siganture, data_is_valid
+from payfast.conf import (LIVE_URL, SANDBOX_URL, TEST_MODE,
+                          REQUIRE_AMOUNT_MATCH, USE_POSTBACK,
+                          MERCHANT_ID, MERCHANT_KEY, IP_HEADER, IP_ADDRESSES)
 
-def siganture(fields):
-    text = signature_string(fields)
-    return md5(text).hexdigest()
+def full_url(link):
+    current_site = Site.objects.get_current()
+    url = current_site.domain + link
+    if not url.startswith('http'):
+        url = 'http://' + url
+    return url
+
+def notify_url():
+    return full_url(reverse('payfast_notify'))
 
 class HiddenForm(forms.Form):
     """ A form with all fields hidden """
@@ -24,7 +29,13 @@ class HiddenForm(forms.Form):
 class PayFastForm(HiddenForm):
     """ PayFast helper form.
     It is not for validating data.
-    It can be used to output html. """
+    It can be used to output html.
+
+    Pass all the fields to form 'initial' argument. Form also has an optional
+    'user' parameter: it is the User instance the order is purchased by. If
+    'user' is specified, 'name_first', 'name_last' and 'email_address' fields
+    will be filled automatically if they are not passed with 'initial'.
+    """
 
     target = LIVE_URL if TEST_MODE else SANDBOX_URL
 
@@ -91,7 +102,7 @@ class PayFastForm(HiddenForm):
         data = SortedDict()
         for key in self.fields.keys():
             data[key] = self.initial.get(key, None)
-        self.fields['signature'].initial = siganture(data)
+        self._signature = self.fields['signature'].initial = siganture(data)
 
 
 class NotifyForm(forms.ModelForm):
@@ -99,12 +110,37 @@ class NotifyForm(forms.ModelForm):
     def __init__(self, request, *args, **kwargs):
         self.request = request
         super(NotifyForm, self).__init__(*args, **kwargs)
+        # the form must be used with order instance provided
+        assert self.instance.pk
 
     def clean(self):
         self.ip = self.request.META.get(IP_HEADER, None)
         if self.ip not in IP_ADDRESSES:
             raise forms.ValidationError('untrusted ip: %s' % self.ip)
+
+        if USE_POSTBACK:
+            if not data_is_valid(self.request.raw_post_data):
+                raise forms.ValidationError('Request validation fails')
+
         return self.cleaned_data
+
+    def clean_merchant_id(self):
+        merchant_id = self.cleaned_data['merchant_id']
+        if merchant_id != MERCHANT_ID:
+            raise forms.ValidationError('Invalid merchant id (%s).' % merchant_id)
+        return merchant_id
+
+    def clean_amount_gross(self):
+        received = self.cleaned_data['amount_gross']
+        if REQUIRE_AMOUNT_MATCH:
+            requested = self.instance.amount_gross
+            if requested != received:
+                raise forms.ValidationError('Amount is not the same: %s != %s' % (
+                                            requested, received,))
+        return received
+
+    def clean_signature(self):
+        return self.cleaned_data['signature']
 
     def save(self, *args, **kwargs):
         self.instance.request_ip = self.ip
