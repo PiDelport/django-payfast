@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
     name='django-payfast',
-    version='0.1.4',
+    version='0.1.5',
     author='Mikhail Korobov',
     author_email='kmike84@gmail.com',
 

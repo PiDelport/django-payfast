@@ -32,7 +32,7 @@ def data_is_valid(post_data, postback_url=POSTBACK_URL):
     """
     post_str = urlencode(_values_to_encode(post_data))
     try:
-        response = urllib2.urlopen(postback_url, post_data).read()
+        response = urllib2.urlopen(postback_url, post_str).read()
     except urllib2.HTTPError:
         return None
     if response == 'VALID':
