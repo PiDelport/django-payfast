@@ -119,8 +119,12 @@ class NotifyForm(forms.ModelForm):
             raise forms.ValidationError('untrusted ip: %s' % self.ip)
 
         if conf.USE_POSTBACK:
-            if not data_is_valid(self.request.POST):
-                raise forms.ValidationError('Request validation fails')
+            is_valid = data_is_valid(self.request.POST)
+            if is_valid is None:
+                raise forms.ValidationError('Postback fails')
+            if not is_valid:
+                raise forms.ValidationError('Postback validation fails')
+
 
         return self.cleaned_data
 

@@ -3,6 +3,7 @@ This module can be used without django
 """
 from hashlib import md5
 import urllib2
+import logging
 from urllib import urlencode
 
 POSTBACK_URL = 'https://www.payfast.co.za/eng/query/validate'
@@ -31,6 +32,7 @@ def data_is_valid(post_data, postback_url=POSTBACK_URL):
     False if data is invalid and None if the request failed.
     """
     post_str = urlencode(_values_to_encode(post_data))
+    logging.info(post_str)
     try:
         response = urllib2.urlopen(postback_url, post_str).read()
     except urllib2.HTTPError:
