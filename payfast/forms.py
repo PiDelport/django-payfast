@@ -7,8 +7,6 @@ from payfast.models import PayFastOrder
 from payfast.api import siganture, data_is_valid
 from payfast import conf
 
-TARGET_URL = conf.LIVE_URL if not conf.TEST_MODE else conf.SANDBOX_URL
-
 def full_url(link):
     current_site = Site.objects.get_current()
     url = current_site.domain + link
@@ -37,7 +35,7 @@ class PayFastForm(HiddenForm):
     will be filled automatically if they are not passed with 'initial'.
     """
 
-    target = TARGET_URL
+    target = conf.PROCESS_URL
 
     # Receiver Details
     merchant_id = forms.CharField()
@@ -119,7 +117,7 @@ class NotifyForm(forms.ModelForm):
             raise forms.ValidationError('untrusted ip: %s' % self.ip)
 
         if conf.USE_POSTBACK:
-            is_valid = data_is_valid(self.request.POST)
+            is_valid = data_is_valid(self.request.POST, conf.SERVER)
             if is_valid is None:
                 raise forms.ValidationError('Postback fails')
             if not is_valid:
