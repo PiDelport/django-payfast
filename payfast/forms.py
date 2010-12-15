@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
 
 from payfast.models import PayFastOrder
-from payfast.api import siganture, data_is_valid
+from payfast.api import signature, data_is_valid
 from payfast import conf
 
 def full_url(link):
@@ -100,7 +100,7 @@ class PayFastForm(HiddenForm):
         data = SortedDict()
         for key in self.fields.keys():
             data[key] = self.initial.get(key, None)
-        self._signature = self.fields['signature'].initial = siganture(data)
+        self._signature = self.fields['signature'].initial = signature(data)
 
 
 class NotifyForm(forms.ModelForm):

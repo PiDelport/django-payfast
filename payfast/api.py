@@ -19,7 +19,7 @@ def _signature_string(data):
     values = _values_to_encode(data)
     return urlencode(values)
 
-def siganture(data):
+def signature(data):
     """
     Calculates PayFast signature.
     'data' should be a SortedDict or an OrderedDict instance.

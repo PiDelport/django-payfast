@@ -5,7 +5,7 @@ from django.utils.datastructures import SortedDict
 
 from payfast.forms import notify_url, PayFastForm
 from payfast.models import PayFastOrder
-from payfast.api import siganture
+from payfast.api import signature
 from payfast import conf
 import payfast.signals
 
@@ -37,7 +37,7 @@ def _order():
 class SignatureTest(unittest.TestCase):
     def test_signature(self):
         data = _test_data()
-        self.assertEqual(siganture(data), 'c71d41dd5041bf28d819fe102ab0106b')
+        self.assertEqual(signature(data), 'c71d41dd5041bf28d819fe102ab0106b')
 
 class NotifyTest(TestCase):
 
