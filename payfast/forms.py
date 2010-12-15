@@ -116,6 +116,18 @@ class NotifyForm(forms.ModelForm):
         if self.ip not in conf.IP_ADDRESSES:
             raise forms.ValidationError('untrusted ip: %s' % self.ip)
 
+#        # signature is checked here because cleaned_data is not yet populated
+#        # when clean_signature method is invoked
+#        data = SortedDict()
+#        for key in self.fields.keys():
+#            if key == 'signature':
+#                continue
+#            data[key] = self.cleaned_data.get(key, None)
+#
+#        if signature(data) != self.cleaned_data['signature']:
+#            raise forms.ValidationError('Signature is invalid: %s != %s' % (
+#                        signature(data), self.cleaned_data['signature'],))
+
         if conf.USE_POSTBACK:
             is_valid = data_is_valid(self.request.POST, conf.SERVER)
             if is_valid is None:
@@ -140,9 +152,6 @@ class NotifyForm(forms.ModelForm):
                 raise forms.ValidationError('Amount is not the same: %s != %s' % (
                                             requested, received,))
         return received
-
-    def clean_signature(self):
-        return self.cleaned_data['signature']
 
     def save(self, *args, **kwargs):
         self.instance.request_ip = self.ip

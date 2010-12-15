@@ -28,7 +28,7 @@ def _notify_data(data, payment_form):
     notify_data['amount_gross'] = data['amount']
     del notify_data['amount']
     del notify_data['merchant_key']
-    notify_data['signature'] = payment_form._signature
+    notify_data['signature'] = signature(notify_data)
     return notify_data
 
 def _order():
