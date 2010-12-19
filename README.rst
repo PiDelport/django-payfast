@@ -130,7 +130,7 @@ Example::
 
     import payfast.signals
 
-    def data_received(sender, **kwargs):
+    def notify_handler(sender, **kwargs):
         payfast_order = kwargs['order']
 
         if payfast_order.payment_status == 'COMPLETE':
@@ -145,7 +145,7 @@ Example::
             # your business logic
             # ...
 
-    payfast.signals.notify.connect(data_received)
+    payfast.signals.notify.connect(notify_handler)
 
 
 urls.py
