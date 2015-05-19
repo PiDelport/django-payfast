@@ -56,7 +56,10 @@ class NotifyTest(TestCase):
     def tearDown(self):
         payfast.signals.notify.disconnect(self.signal_handler)
 
-    def test_notify(self):
+    def _create_order(self):
+        """
+        Create a payment order, and return the notification data for it.
+        """
         data = _test_data()
 
         # user posts the pay request
@@ -66,7 +69,10 @@ class NotifyTest(TestCase):
         })
         self.assertEqual(_order().trusted, None)
 
-        notify_data = _notify_data(data, payment_form)
+        return _notify_data(data, payment_form)
+
+    def test_notify(self):
+        notify_data = self._create_order()
 
         # the server sends a notification
         response = self.client.post(notify_url(), notify_data)
@@ -77,6 +83,22 @@ class NotifyTest(TestCase):
         self.assertEqual(order.request_ip, u'127.0.0.1')
         self.assertEqual(order.debug_info, u'')
         self.assertEqual(order.trusted, True)
+
+    def test_untrusted_ip(self):
+        """
+        The notify handler rejects notification attempts from untrusted IP address.
+        """
+        notify_data = self._create_order()
+
+        # the server sends a notification
+        response = self.client.post(notify_url(), notify_data, REMOTE_ADDR='127.0.0.2')
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(self.signal_handler.called)
+
+        order = _order()
+        self.assertEqual(order.request_ip, u'127.0.0.2')
+        self.assertEqual(order.debug_info, u'__all__: untrusted ip: 127.0.0.2')
+        self.assertEqual(order.trusted, False)
 
     def test_non_existing_order(self):
         response = self.client.post(notify_url(), {})
