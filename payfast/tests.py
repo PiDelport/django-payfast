@@ -2,6 +2,7 @@
 import unittest
 from collections import OrderedDict
 
+import django
 from django.test import TestCase
 
 from payfast.forms import notify_url, PayFastForm
@@ -117,7 +118,10 @@ class NotifyTest(TestCase):
         order = _order()
         self.assertEqual(order.request_ip, u'127.0.0.1')
         self.assertEqual(set(order.debug_info.split(u'|')), {
-            u'amount_gross: Amount is not the same: 100 != None',
+            u'amount_gross: Amount is not the same: {} != None'.format(
+                # Django 1.8 returns more precise DecimalField values.
+                u'100' if django.VERSION < (1, 8) else u'100.00'
+            ),
             u'item_name: This field is required.',
             u'merchant_id: This field is required.',
         })
