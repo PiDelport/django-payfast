@@ -71,18 +71,31 @@ class NotifyTest(TestCase):
         # the server sends a notification
         response = self.client.post(notify_url(), notify_data)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(_order().trusted, True)
         self.assertTrue(self.signal_handler.called)
+
+        order = _order()
+        self.assertEqual(order.request_ip, u'127.0.0.1')
+        self.assertEqual(order.debug_info, u'')
+        self.assertEqual(order.trusted, True)
 
     def test_non_existing_order(self):
         response = self.client.post(notify_url(), {})
         self.assertEqual(response.status_code, 404)
         self.assertFalse(self.signal_handler.called)
 
+        self.assertQuerysetEqual(PayFastOrder.objects.all(), [])
+
     def test_invalid_request(self):
         form = PayFastForm(initial={'amount': 100, 'item_name': 'foo'})
         response = self.client.post(notify_url(), {'m_payment_id': form.order.pk})
         self.assertEqual(response.status_code, 404)
-        order = _order()
-        self.assertEqual(order.trusted, False)
         self.assertFalse(self.signal_handler.called)
+
+        order = _order()
+        self.assertEqual(order.request_ip, u'127.0.0.1')
+        self.assertEqual(set(order.debug_info.split(u'|')), {
+            u'amount_gross: Amount is not the same: 100 != None',
+            u'item_name: This field is required.',
+            u'merchant_id: This field is required.',
+        })
+        self.assertEqual(order.trusted, False)
