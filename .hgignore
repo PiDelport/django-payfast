@@ -29,3 +29,6 @@ build/
 dist/
 .build/
 MANIFEST
+
+# Tox working directory
+.tox/
