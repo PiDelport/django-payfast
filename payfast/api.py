@@ -22,7 +22,7 @@ def _signature_string(data):
 def signature(data):
     """
     Calculates PayFast signature.
-    'data' should be a SortedDict or an OrderedDict instance.
+    'data' should be a OrderedDict instance.
     """
     text = _signature_string(data)
     return md5(text).hexdigest()

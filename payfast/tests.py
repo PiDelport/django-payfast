@@ -1,7 +1,8 @@
 # coding: utf-8
 import unittest
+from collections import OrderedDict
+
 from django.test import TestCase
-from django.utils.datastructures import SortedDict
 
 from payfast.forms import notify_url, PayFastForm
 from payfast.models import PayFastOrder
@@ -10,7 +11,7 @@ from payfast import conf
 import payfast.signals
 
 def _test_data():
-    data = SortedDict()
+    data = OrderedDict()
     data['merchant_id'] = '10000100'
     data['merchant_key'] = '46f0cd694581a'
     data['notify_url'] = "http://127.0.0.1:8000/payfast/notify/"

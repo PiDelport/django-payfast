@@ -1,6 +1,7 @@
+from collections import OrderedDict
+
 import django
 from django import forms
-from django.utils.datastructures import SortedDict
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
 
@@ -98,7 +99,7 @@ class PayFastForm(HiddenForm):
         self.initial['m_payment_id'] = self.order.pk
 
         # we need self.initial but it is unordered
-        data = SortedDict()
+        data = OrderedDict()
         for key in self.fields.keys():
             data[key] = self.initial.get(key, None)
         self._signature = self.fields['signature'].initial = signature(data)
@@ -119,7 +120,7 @@ class NotifyForm(forms.ModelForm):
 
 #        # signature is checked here because cleaned_data is not yet populated
 #        # when clean_signature method is invoked
-#        data = SortedDict()
+#        data = OrderedDict()
 #        for key in self.fields.keys():
 #            if key == 'signature':
 #                continue
