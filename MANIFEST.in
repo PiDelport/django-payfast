@@ -2,4 +2,4 @@ include *.txt
 include *.rst
 recursive-include docs *.txt
 recursive-include payfast_tests *.py
-recursive-include payfast_tests/templates/ *.html
+recursive-include payfast_tests/templates *.html
