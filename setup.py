@@ -7,7 +7,7 @@ setup(
     author='Mikhail Korobov',
     author_email='kmike84@gmail.com',
 
-    packages=['payfast', 'payfast.migrations'],
+    packages=['payfast', 'payfast.south_migrations'],
 
     url='http://bitbucket.org/kmike/django-payfast/',
     download_url = 'http://bitbucket.org/kmike/django-payfast/get/tip.gz',
