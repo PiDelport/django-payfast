@@ -59,10 +59,13 @@ INSTALLED_APPS = [
     'payfast',
 ]
 
-# test migrations if South is available
-try:
-    import south
-    if 'south' not in INSTALLED_APPS:
-        INSTALLED_APPS += ['south']
-except ImportError:
-    pass
+import django
+if django.VERSION < (1, 7):
+    # test migrations if South is available
+    try:
+        import south
+        if 'south' not in INSTALLED_APPS:
+            INSTALLED_APPS += ['south']
+    except ImportError:
+        pass
+del django

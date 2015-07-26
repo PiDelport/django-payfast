@@ -1,5 +1,8 @@
 include *.txt
 include *.rst
+include tox.ini
 recursive-include docs *.txt
+
+# payfast_tests is not an installed package, so include its Python source here.
 recursive-include payfast_tests *.py
-recursive-include payfast_tests/templates/ *.html
+recursive-include payfast_tests/templates *.html

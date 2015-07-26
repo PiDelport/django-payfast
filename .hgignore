@@ -24,7 +24,11 @@ payfast_tests/db.sqlite
 Thumbs.db
 
 #setup files
+*.egg-info/
 build/
 dist/
 .build/
 MANIFEST
+
+# Tox working directory
+.tox/
