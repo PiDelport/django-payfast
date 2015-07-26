@@ -9,6 +9,7 @@ from payfast.models import PayFastOrder
 from payfast.api import signature, data_is_valid
 from payfast import conf
 
+
 def full_url(link):
     current_site = Site.objects.get_current()
     url = current_site.domain + link
@@ -16,8 +17,10 @@ def full_url(link):
         url = 'http://' + url
     return url
 
+
 def notify_url():
     return full_url(reverse('payfast_notify'))
+
 
 class HiddenForm(forms.Form):
     """ A form with all fields hidden """
@@ -25,6 +28,7 @@ class HiddenForm(forms.Form):
         super(HiddenForm, self).__init__(*args, **kwargs)
         for field in self.fields:
             self.fields[field].widget = forms.HiddenInput()
+
 
 class PayFastForm(HiddenForm):
     """ PayFast helper form.
@@ -93,7 +97,7 @@ class PayFastForm(HiddenForm):
         # new order reference number is issued each time form is instantiated
         self.order = PayFastOrder.objects.create(
             user=user,
-            amount_gross = self.initial['amount'],
+            amount_gross=self.initial['amount'],
         )
 
         self.initial['m_payment_id'] = self.order.pk
@@ -137,7 +141,6 @@ class NotifyForm(forms.ModelForm):
             if not is_valid:
                 raise forms.ValidationError('Postback validation fails')
 
-
         return self.cleaned_data
 
     def clean_merchant_id(self):
@@ -175,4 +178,3 @@ class NotifyForm(forms.ModelForm):
         model = PayFastOrder
         exclude = ['created_at', 'updated_at', 'request_ip', 'debug_info',
                    'trusted', 'user']
-

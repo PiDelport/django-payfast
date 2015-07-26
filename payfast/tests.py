@@ -11,6 +11,7 @@ from payfast.api import signature
 from payfast import conf
 import payfast.signals
 
+
 def _test_data():
     data = OrderedDict()
     data['merchant_id'] = '10000100'
@@ -23,6 +24,7 @@ def _test_data():
     data['item_name'] = u"Payment (Планета суши). ID:272-15"
     return data
 
+
 def _notify_data(data, payment_form):
     notify_data = data.copy()
     # prepare server data
@@ -33,13 +35,16 @@ def _notify_data(data, payment_form):
     notify_data['signature'] = signature(notify_data)
     return notify_data
 
+
 def _order():
     return PayFastOrder.objects.all()[0]
+
 
 class SignatureTest(unittest.TestCase):
     def test_signature(self):
         data = _test_data()
         self.assertEqual(signature(data), 'c71d41dd5041bf28d819fe102ab0106b')
+
 
 class NotifyTest(TestCase):
 

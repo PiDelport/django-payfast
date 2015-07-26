@@ -1,6 +1,7 @@
 from django.contrib import admin
 from payfast.models import PayFastOrder
 
+
 class PayFastOrderAdmin(admin.ModelAdmin):
 
     list_display = ['m_payment_id', 'pf_payment_id', 'user', 'created_at', 'amount_gross',
