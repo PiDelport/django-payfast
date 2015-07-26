@@ -6,6 +6,8 @@ setup(
     version='0.3.dev',
     author='Mikhail Korobov',
     author_email='kmike84@gmail.com',
+    maintainer='Piet Delport',
+    maintainer_email='pjdelport@gmail.com',
 
     packages=find_packages(exclude=['payfast_tests']),
 
