@@ -11,8 +11,7 @@ setup(
 
     packages=find_packages(exclude=['payfast_tests']),
 
-    url='http://bitbucket.org/kmike/django-payfast/',
-    download_url='http://bitbucket.org/kmike/django-payfast/get/tip.gz',
+    url='https://bitbucket.org/pjdelport/django-payfast',
     license='MIT license',
     description='A pluggable Django application for integrating payfast.co.za payment system.',
     long_description=open('README.rst').read().decode('utf8'),
