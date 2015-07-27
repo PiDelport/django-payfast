@@ -9,11 +9,10 @@ nbproject/*
 .buildpath
 build.properties
 
-#temp files
+# Python bytecode
 *.pyc
 *.pyo
-*.orig
-*~
+__pycache__
 
 #misc files
 pip-log.txt
@@ -23,12 +22,11 @@ payfast_tests/db.sqlite
 .DS_Store
 Thumbs.db
 
-#setup files
+# setuptools-generated
 *.egg-info/
+.eggs/
 build/
 dist/
-.build/
-MANIFEST
 
 # Tox working directory
 .tox/
