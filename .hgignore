@@ -30,3 +30,7 @@ dist/
 
 # Tox working directory
 .tox/
+
+# Coverage reports
+.coverage
+htmlcov/
