@@ -3,7 +3,6 @@ This module can be used without django
 """
 from hashlib import md5
 import urllib2
-import logging
 from urllib import urlencode
 
 POSTBACK_URL = '/eng/query/validate'

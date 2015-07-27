@@ -68,4 +68,6 @@ if django.VERSION < (1, 7):
             INSTALLED_APPS += ['south']
     except ImportError:
         pass
+    else:
+        del south
 del django
