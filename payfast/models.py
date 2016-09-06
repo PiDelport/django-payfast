@@ -2,6 +2,11 @@ from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import User
 
+try:
+    from django.db.models import GenericIPAddressField as IPAddressField
+except ImportError:
+    from django.db.models import IPAddressField
+
 from payfast import readable_models
 
 class PayFastOrder(models.Model):
@@ -49,7 +54,7 @@ class PayFastOrder(models.Model):
     # Utility fields
     created_at = models.DateTimeField(default=datetime.now)
     updated_at = models.DateTimeField(default=datetime.now)
-    request_ip = models.IPAddressField(null=True, blank=True)
+    request_ip = IPAddressField(null=True, blank=True)
     debug_info = models.CharField(max_length=255, null=True, blank=True)
     trusted = models.NullBooleanField(default=None)
     user = models.ForeignKey(User, null=True, blank=True)

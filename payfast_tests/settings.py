@@ -1,4 +1,9 @@
-import os, sys
+import django
+import os
+import sys
+
+from distutils.version import StrictVersion
+
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 join = lambda p: os.path.abspath(os.path.join(PROJECT_ROOT, p))
 
@@ -13,7 +18,6 @@ PAYFAST_MERCHANT_KEY = '46f0cd694581a'
 # ===========================
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 ADMINS = ()
 MANAGERS = ADMINS
@@ -48,7 +52,30 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'urls'
-TEMPLATE_DIRS = (join('templates'),)
+
+if django.get_version() >= StrictVersion("1.8"):
+    TEMPLATES = [
+        {
+            "BACKEND": 'django.template.backends.django.DjangoTemplates',
+            'DIRS': (join('templates'),),
+            'APP_DIRS': True,
+            'OPTIONS': {
+                'context_processors': [
+                    'django.template.context_processors.debug',
+                    'django.template.context_processors.request',
+                    'django.contrib.auth.context_processors.auth',
+                ],
+            }
+        }
+    ]
+else:
+    TEMPLATE_DEBUG = DEBUG
+    TEMPLATE_LOADERS = (
+        'django.template.loaders.filesystem.Loader',
+        'django.template.loaders.app_directories.Loader',
+    )
+    TEMPLATE_DIRS = (join('templates'),)
+
 
 INSTALLED_APPS = [
     'django.contrib.auth',
@@ -59,8 +86,8 @@ INSTALLED_APPS = [
     'payfast',
 ]
 
-import django
-if django.VERSION < (1, 7):
+
+if django.get_version() < StrictVersion("1.7"):
     # test migrations if South is available
     try:
         import south
