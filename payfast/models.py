@@ -52,8 +52,8 @@ class PayFastOrder(models.Model):
     signature = models.CharField(max_length=32, null=True, blank=True)
 
     # Utility fields
-    created_at = models.DateTimeField(default=datetime.now)
-    updated_at = models.DateTimeField(default=datetime.now)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     request_ip = IPAddressField(null=True, blank=True)
     debug_info = models.CharField(max_length=255, null=True, blank=True)
     trusted = models.NullBooleanField(default=None)
@@ -75,10 +75,6 @@ class PayFastOrder(models.Model):
 
         merchant_id = "The Merchant ID as given by the PayFast system."
         signature = "A security signature of the transmitted data"
-
-    def save(self, *args, **kwargs):
-        self.updated_at = datetime.now()
-        return super(PayFastOrder, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return u'PayFastOrder #%s (%s)' % (self.pk, self.created_at)
