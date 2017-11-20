@@ -19,6 +19,8 @@ A pluggable Django application for integrating payfast.co.za payment system.
 .. image:: https://codecov.io/github/pjdelport/django-payfast/coverage.svg?branch=master
     :target: https://codecov.io/github/pjdelport/django-payfast?branch=master
 
+.. contents::
+
 Install
 =======
 
