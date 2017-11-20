@@ -1,0 +1,24 @@
+# Python bytecode
+*.pyc
+*.pyo
+__pycache__
+
+# setuptools-generated
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Tox working directory
+.tox
+
+# pytest cache directory
+.cache/
+
+# Coverage reports
+.coverage
+htmlcov/
+
+# Test database
+payfast_tests/db.sqlite
+
