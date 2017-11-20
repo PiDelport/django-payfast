@@ -2,6 +2,7 @@ from django.db.models.base import ModelBase as DjangoModelBase
 
 # http://djangosnippets.org/snippets/2180/
 
+
 class ModelBase(DjangoModelBase):
     ''' Decouples 'help_text' attribute from field definition. '''
     def __new__(cls, name, bases, attrs):

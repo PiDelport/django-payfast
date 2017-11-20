@@ -3,11 +3,11 @@ This module can be used without django
 """
 from hashlib import md5
 import urllib2
-import logging
 from urllib import urlencode
 
 POSTBACK_URL = '/eng/query/validate'
 POSTBACK_SERVER = 'https://www.payfast.co.za'
+
 
 def _values_to_encode(data):
     return [
@@ -15,9 +15,11 @@ def _values_to_encode(data):
         for k in data if data[k] and k != 'signature'
     ]
 
+
 def _signature_string(data):
     values = _values_to_encode(data)
     return urlencode(values)
+
 
 def signature(data):
     """
@@ -26,6 +28,7 @@ def signature(data):
     """
     text = _signature_string(data)
     return md5(text).hexdigest()
+
 
 def data_is_valid(post_data, postback_server=POSTBACK_SERVER):
     """

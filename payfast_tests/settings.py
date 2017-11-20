@@ -20,7 +20,7 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'django.db.backends.sqlite3',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': join('db.sqlite'),                      # Or path to database file if using sqlite3.
     }
 }
@@ -68,4 +68,6 @@ if django.VERSION < (1, 7):
             INSTALLED_APPS += ['south']
     except ImportError:
         pass
+    else:
+        del south
 del django

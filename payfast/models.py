@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 from payfast import readable_models
 
+
 class PayFastOrder(models.Model):
 
     # see http://djangosnippets.org/snippets/2180/

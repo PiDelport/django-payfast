@@ -22,6 +22,5 @@ PROCESS_URL = SERVER + '/eng/process'
 REQUIRE_AMOUNT_MATCH = getattr(settings, 'PAYFAST_REQUIRE_AMOUNT_MATCH', True)
 USE_POSTBACK = getattr(settings, 'PAYFAST_USE_POSTBACK', True)
 
-IP_HEADER = getattr(settings, 'PAYFAST_IP_HEADER', 'REMOTE_ADDR') # request.META key with client ip address
+IP_HEADER = getattr(settings, 'PAYFAST_IP_HEADER', 'REMOTE_ADDR')  # request.META key with client ip address
 IP_ADDRESSES = getattr(settings, 'PAYFAST_IP_ADDRESSES', ['196.33.227.224', '196.33.227.225'])
-

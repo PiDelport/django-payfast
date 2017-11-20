@@ -17,7 +17,7 @@ or ::
 
 or ::
 
-    $ hg clone http://bitbucket.org/kmike/django-payfast/
+    $ hg clone https://bitbucket.org/pjdelport/django-payfast
     $ cd django-payfast
     $ python setup.py install
 
