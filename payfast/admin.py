@@ -12,4 +12,5 @@ class PayFastOrderAdmin(admin.ModelAdmin):
     raw_id_fields = ['user']
     date_hierarchy = 'created_at'
 
+
 admin.site.register(PayFastOrder, PayFastOrderAdmin)
