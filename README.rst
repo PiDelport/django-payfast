@@ -11,17 +11,6 @@ Install
 
     $ pip install django-payfast
 
-or ::
-
-    $ easy_install django-payfast
-
-or ::
-
-    $ hg clone https://bitbucket.org/pjdelport/django-payfast
-    $ cd django-payfast
-    $ python setup.py install
-
-
 Then add 'payfast' to INSTALLED_APPS and execute ::
 
     $ python manage.py syncdb
