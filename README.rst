@@ -4,23 +4,29 @@ django-payfast
 
 A pluggable Django application for integrating payfast.co.za payment system.
 
+.. image:: https://img.shields.io/pypi/v/django-payfast.svg
+    :target: https://pypi.python.org/pypi/django-payfast
+
+.. image:: https://img.shields.io/badge/source-GitHub-lightgrey.svg
+    :target: https://github.com/pjdelport/django-payfast
+
+.. image:: https://img.shields.io/github/issues/pjdelport/django-payfast.svg
+    :target: https://github.com/pjdelport/django-payfast/issues?q=is:open
+
+.. image:: https://travis-ci.org/pjdelport/django-payfast.svg?branch=master
+    :target: https://travis-ci.org/pjdelport/django-payfast
+
+.. image:: https://codecov.io/github/pjdelport/django-payfast/coverage.svg?branch=master
+    :target: https://codecov.io/github/pjdelport/django-payfast?branch=master
+
+.. contents::
+
 Install
 =======
 
 ::
 
     $ pip install django-payfast
-
-or ::
-
-    $ easy_install django-payfast
-
-or ::
-
-    $ hg clone https://bitbucket.org/pjdelport/django-payfast
-    $ cd django-payfast
-    $ python setup.py install
-
 
 Then add 'payfast' to INSTALLED_APPS and execute ::
 
