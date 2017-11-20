@@ -1,0 +1,27 @@
+language: python
+cache: pip
+
+matrix:
+  include:
+    - { python: '2.7', env: TOXENV=py27-dj1.2 }
+    - { python: '2.7', env: TOXENV=py27-dj1.3 }
+    - { python: '2.7', env: TOXENV=py27-dj1.4 }
+    - { python: '2.7', env: TOXENV=py27-dj1.5 }
+    - { python: '2.7', env: TOXENV=py27-dj1.6 }
+    - { python: '2.7', env: TOXENV=py27-dj1.7 }
+    - { python: '2.7', env: TOXENV=py27-dj1.8 }
+    - { python: '2.7', env: TOXENV=py27-dj1.9 }
+    - { python: '2.7', env: TOXENV=py27-dj1.10 }
+
+# Avoid overriding the default install step,
+# so that automatic pip caching works.
+#
+# See: https://github.com/travis-ci/travis-ci/issues/3239
+#
+before_script:
+  - pip install tox
+  - pip install flake8
+
+script:
+  - tox
+  - flake8
