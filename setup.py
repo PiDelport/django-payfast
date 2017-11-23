@@ -4,8 +4,6 @@ from setuptools import setup, find_packages
 setup(
     name='django-payfast',
     version='0.3.dev',
-    author='Mikhail Korobov',
-    author_email='kmike84@gmail.com',
     maintainer='Pi Delport',
     maintainer_email='pjdelport@gmail.com',
 
