@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
 
+
+def README():
+    with open('README.rst') as f:
+        return f.read()
+
+
 setup(
     name='django-payfast',
     version='0.3.dev',
@@ -16,7 +22,7 @@ setup(
     url='https://github.com/pjdelport/django-payfast',
     license='MIT license',
     description='A pluggable Django application for integrating payfast.co.za payment system.',
-    long_description=open('README.rst').read().decode('utf8'),
+    long_description=README(),
 
     classifiers=(
         'Development Status :: 3 - Alpha',
