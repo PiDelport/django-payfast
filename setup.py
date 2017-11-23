@@ -11,6 +11,10 @@ setup(
 
     packages=find_packages(exclude=['payfast_tests']),
 
+    install_requires=[
+        'Django',
+    ],
+
     url='https://github.com/pjdelport/django-payfast',
     license='MIT license',
     description='A pluggable Django application for integrating payfast.co.za payment system.',
