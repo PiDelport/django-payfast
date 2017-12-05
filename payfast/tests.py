@@ -126,8 +126,11 @@ class NotifyTest(TestCase):
         self.assertEqual(order.request_ip, '127.0.0.1')
         self.assertEqual(set(order.debug_info.split('|')), {
             'amount_gross: Amount is not the same: {} != None'.format(
-                # Django 1.8 returns more precise DecimalField values.
-                '100' if django.VERSION < (1, 8) else '100.00'
+                '100' if django.VERSION < (1, 8) else
+                # Django 1.8+ returns more precise DecimalField values
+                '100.00' if django.VERSION < (2, 0) else
+                # Django 2.0+ returns less precise DecimalField values again.
+                '100'
             ),
             'item_name: This field is required.',
             'merchant_id: This field is required.',
