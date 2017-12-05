@@ -2,8 +2,6 @@ import django
 import os
 import sys
 
-from distutils.version import StrictVersion
-
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 join = lambda p: os.path.abspath(os.path.join(PROJECT_ROOT, p))  # noqa: E731
 
@@ -54,7 +52,17 @@ if django.VERSION < (1, 10):
 
 ROOT_URLCONF = 'urls'
 
-if django.get_version() >= StrictVersion("1.8"):
+# Django 1.8 migrates TEMPLATE_* to TEMPLATES
+if django.VERSION < (1, 8):
+    TEMPLATE_DEBUG = DEBUG
+    TEMPLATE_LOADERS = [
+        'django.template.loaders.filesystem.Loader',
+        'django.template.loaders.app_directories.Loader',
+    ]
+    TEMPLATE_DIRS = [
+        join('templates'),
+    ]
+else:
     TEMPLATES = [
         {
             "BACKEND": 'django.template.backends.django.DjangoTemplates',
@@ -69,13 +77,6 @@ if django.get_version() >= StrictVersion("1.8"):
             }
         }
     ]
-else:
-    TEMPLATE_DEBUG = DEBUG
-    TEMPLATE_LOADERS = (
-        'django.template.loaders.filesystem.Loader',
-        'django.template.loaders.app_directories.Loader',
-    )
-    TEMPLATE_DIRS = (join('templates'),)
 
 
 INSTALLED_APPS = [
@@ -88,7 +89,7 @@ INSTALLED_APPS = [
 ]
 
 
-if django.get_version() < StrictVersion("1.7"):
+if django.VERSION < (1, 7):
     # test migrations if South is available
     try:
         import south  # noqa: F401
