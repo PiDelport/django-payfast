@@ -10,6 +10,6 @@ if django.VERSION < (1, 7):
 
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
     url(r'^payfast/', include(payfast.urls)),
 ]
