@@ -37,7 +37,6 @@ USE_I18N = True
 USE_L10N = True
 MEDIA_ROOT = join('media')
 MEDIA_URL = '/media/'
-ADMIN_MEDIA_PREFIX = '/media/admin/'
 SECRET_KEY = '5mcs97ar-(nnxjok67290+0^sr!e(ax=x$2-!8dqy25ff-l1*a='
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
