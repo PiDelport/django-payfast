@@ -39,13 +39,18 @@ MEDIA_ROOT = join('media')
 MEDIA_URL = '/media/'
 SECRET_KEY = '5mcs97ar-(nnxjok67290+0^sr!e(ax=x$2-!8dqy25ff-l1*a='
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-)
+]
+
+# Django 1.10 migrates MIDDLEWARE_CLASSES to MIDDLEWARE
+if django.VERSION < (1, 10):
+    MIDDLEWARE_CLASSES = MIDDLEWARE
+    del MIDDLEWARE
 
 ROOT_URLCONF = 'urls'
 
