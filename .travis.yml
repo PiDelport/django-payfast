@@ -16,9 +16,11 @@ matrix:
     - { python: '3.6', env: TOXENV=py36-dj1.10 }
     - { python: '3.6', env: TOXENV=py36-dj1.11 }
 
-    # Report coverage for the latest Django version.
+    # Report coverage for the latest Python & Django versions.
     - { python: '2.7', env: TOXENV=py27-dj1.11-codecov }
     - { python: '3.6', env: TOXENV=py36-dj1.11-codecov }
+    # Also report coverage for Django 1.8, to hit backward-compatibility code.
+    - { python: '3.6', env: TOXENV=py36-dj1.8-codecov }
 
 # Avoid overriding the default install step,
 # so that automatic pip caching works.
