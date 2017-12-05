@@ -9,11 +9,15 @@ def README():
 
 setup(
     name='django-payfast',
-    version='0.3.dev',
+    # Version automatically from tags using setuptools-scm
+    use_scm_version=True,
+
     maintainer='Pi Delport',
     maintainer_email='pjdelport@gmail.com',
 
     packages=find_packages(exclude=['payfast_tests']),
+
+    setup_requires=['setuptools-scm'],
 
     install_requires=[
         'Django',
