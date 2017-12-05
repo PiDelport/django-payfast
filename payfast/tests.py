@@ -56,14 +56,14 @@ class NotifyTest(TestCase):
         conf.MERCHANT_ID = '10000100'
         conf.REQUIRE_AMOUNT_MATCH = True
 
-        def handler(sender, **kwargs):
-            handler.called = True
-        handler.called = False
-        self.signal_handler = handler
-        payfast.signals.notify.connect(self.signal_handler)
+        self.notify_handler_orders = []  # type: list
+        payfast.signals.notify.connect(self.notify_handler)
 
     def tearDown(self):
-        payfast.signals.notify.disconnect(self.signal_handler)
+        payfast.signals.notify.disconnect(self.notify_handler)
+
+    def notify_handler(self, sender, order, **kwargs):
+        self.notify_handler_orders.append(order)
 
     def _create_order(self):
         """
@@ -82,11 +82,12 @@ class NotifyTest(TestCase):
 
     def test_notify(self):
         notify_data = self._create_order()
+        order = _order()
 
         # the server sends a notification
         response = self.client.post(notify_url(), notify_data)
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(self.signal_handler.called)
+        self.assertEqual(self.notify_handler_orders, [order])
 
         order = _order()
         self.assertEqual(order.request_ip, '127.0.0.1')
@@ -102,7 +103,7 @@ class NotifyTest(TestCase):
         # the server sends a notification
         response = self.client.post(notify_url(), notify_data, REMOTE_ADDR='127.0.0.2')
         self.assertEqual(response.status_code, 404)
-        self.assertFalse(self.signal_handler.called)
+        self.assertEqual(self.notify_handler_orders, [])
 
         order = _order()
         self.assertEqual(order.request_ip, '127.0.0.2')
@@ -112,7 +113,7 @@ class NotifyTest(TestCase):
     def test_non_existing_order(self):
         response = self.client.post(notify_url(), {})
         self.assertEqual(response.status_code, 404)
-        self.assertFalse(self.signal_handler.called)
+        self.assertEqual(self.notify_handler_orders, [])
 
         self.assertQuerysetEqual(PayFastOrder.objects.all(), [])
 
@@ -120,7 +121,7 @@ class NotifyTest(TestCase):
         form = PayFastForm(initial={'amount': 100, 'item_name': 'foo'})
         response = self.client.post(notify_url(), {'m_payment_id': form.order.pk})
         self.assertEqual(response.status_code, 404)
-        self.assertFalse(self.signal_handler.called)
+        self.assertEqual(self.notify_handler_orders, [])
 
         order = _order()
         self.assertEqual(order.request_ip, '127.0.0.1')
