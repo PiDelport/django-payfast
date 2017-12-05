@@ -2,6 +2,7 @@ from collections import OrderedDict
 
 import django
 from django import forms
+from django.conf import settings
 from django.contrib.sites.models import Site
 
 from payfast.models import PayFastOrder
@@ -166,7 +167,13 @@ class NotifyForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         self.instance.request_ip = self.ip
 
-        self.instance.debug_info = self.request.read()
+        # Decode body, for saving as debug_info
+        body_bytes = self.request.read()  # type: str
+        body_encoding = (settings.DEFAULT_CHARSET if self.request.encoding is None else
+                         self.request.encoding)
+        body_str = body_bytes.decode(body_encoding)  # type: bytes
+
+        self.instance.debug_info = body_str
 
         self.instance.trusted = True
         return super(NotifyForm, self).save(*args, **kwargs)
