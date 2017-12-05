@@ -9,6 +9,8 @@ from six.moves.urllib.error import HTTPError
 from six.moves.urllib.parse import urlencode
 from six.moves.urllib.request import urlopen
 
+from django.conf import settings
+
 
 POSTBACK_URL = '/eng/query/validate'
 POSTBACK_SERVER = 'https://www.payfast.co.za'
@@ -40,10 +42,13 @@ def data_is_valid(post_data, postback_server=POSTBACK_SERVER):
     Validates data via the postback. Returns True if data is valid,
     False if data is invalid and None if the request failed.
     """
-    post_str = urlencode(_values_to_encode(post_data))
+    post_str = urlencode(_values_to_encode(post_data))  # type: str
+    # FIXME: No Content-Type header.
+    post_bytes = post_str.encode(settings.DEFAULT_CHARSET)  # type: bytes
+
     postback_url = postback_server.rstrip('/') + POSTBACK_URL
     try:
-        response = urlopen(postback_url, post_str).read()
+        response = urlopen(postback_url, data=post_bytes).read()
     except HTTPError:
         return None
     if response == 'VALID':
