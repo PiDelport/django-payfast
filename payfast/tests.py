@@ -15,16 +15,16 @@ import payfast.signals
 
 
 def _test_data():
-    data = OrderedDict()
-    data['merchant_id'] = '10000100'
-    data['merchant_key'] = '46f0cd694581a'
-    data['notify_url'] = "http://127.0.0.1:8000/payfast/notify/"
-    data['name_first'] = "Вася"
-    data['last_name'] = 'Пупников'
-    data['m_payment_id'] = '23'
-    data['amount'] = '234'
-    data['item_name'] = "Payment (Планета суши). ID:272-15"
-    return data
+    return OrderedDict([
+        ('merchant_id', '10000100'),
+        ('merchant_key', '46f0cd694581a'),
+        ('notify_url', "http://127.0.0.1:8000/payfast/notify/"),
+        ('name_first', "Вася"),
+        ('last_name', 'Пупников'),
+        ('m_payment_id', '23'),
+        ('amount', '234'),
+        ('item_name', "Payment (Планета суши). ID:272-15"),
+    ])
 
 
 def _notify_data(data, payment_form):
