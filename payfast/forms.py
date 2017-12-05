@@ -1,12 +1,18 @@
 from collections import OrderedDict
 
+import django
 from django import forms
-from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
 
 from payfast.models import PayFastOrder
 from payfast.api import signature, data_is_valid
 from payfast import conf
+
+# Django 1.10 introduces django.urls
+if django.VERSION < (1, 10):
+    from django.core.urlresolvers import reverse
+else:
+    from django.urls import reverse
 
 
 def full_url(link):
