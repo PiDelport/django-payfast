@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
+import six
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible
 
 from payfast import readable_models

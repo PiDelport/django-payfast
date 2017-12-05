@@ -20,6 +20,7 @@ setup(
     setup_requires=['setuptools-scm'],
 
     install_requires=[
+        'six',
         'Django',
     ],
 
