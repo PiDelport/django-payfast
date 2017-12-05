@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
                 ('request_ip', models.GenericIPAddressField(null=True, blank=True)),
                 ('debug_info', models.CharField(max_length=255, null=True, blank=True)),
                 ('trusted', models.NullBooleanField(default=None)),
-                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'PayFast order',

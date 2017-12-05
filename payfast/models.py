@@ -55,7 +55,7 @@ class PayFastOrder(six.with_metaclass(readable_models.ModelBase, models.Model)):
     request_ip = models.GenericIPAddressField(null=True, blank=True)
     debug_info = models.CharField(max_length=255, null=True, blank=True)
     trusted = models.NullBooleanField(default=None)
-    user = models.ForeignKey(User, null=True, blank=True)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
 
     class HelpText:
         m_payment_id = "Unique transaction ID on the receiver's system."
