@@ -38,7 +38,7 @@ def signature(data):
     'data' should be a OrderedDict instance.
     """
     text = _signature_string(data)
-    return md5(text).hexdigest()
+    return md5(text.encode('ascii')).hexdigest()
 
 
 def data_is_valid(post_data, postback_server=POSTBACK_SERVER):
