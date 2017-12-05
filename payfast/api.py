@@ -1,19 +1,13 @@
 """
 This module can be used without django
 """
-import sys
 from hashlib import md5
 
-if sys.version_info < (3,):
-    from urllib2 import HTTPError
-    from urllib import urlencode
-    from urllib2 import urlopen
-else:
-    from urllib.error import HTTPError
-    from urllib.parse import urlencode
-    from urllib.request import urlopen
-
-_str = unicode if sys.version_info < (3,) else str  # noqa: F821
+# Python 2 compatibility:
+from six import text_type as str
+from six.moves.urllib.error import HTTPError
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import urlopen
 
 
 POSTBACK_URL = '/eng/query/validate'
@@ -22,7 +16,7 @@ POSTBACK_SERVER = 'https://www.payfast.co.za'
 
 def _values_to_encode(data):
     return [
-        (k, _str(data[k]).strip().encode('utf8'))
+        (k, str(data[k]).strip().encode('utf8'))
         for k in data if data[k] and k != 'signature'
     ]
 
