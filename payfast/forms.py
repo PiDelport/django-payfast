@@ -1,6 +1,5 @@
 from collections import OrderedDict
 
-import django
 from django import forms
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
@@ -161,11 +160,7 @@ class NotifyForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         self.instance.request_ip = self.ip
 
-        # Django 1.3 adds read() to get the request body.
-        if django.VERSION < (1, 3):
-            self.instance.debug_info = self.request.raw_post_data
-        else:
-            self.instance.debug_info = self.request.read()
+        self.instance.debug_info = self.request.read()
 
         self.instance.trusted = True
         return super(NotifyForm, self).save(*args, **kwargs)

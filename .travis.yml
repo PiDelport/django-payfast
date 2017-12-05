@@ -3,8 +3,6 @@ cache: pip
 
 matrix:
   include:
-    - { python: '2.7', env: TOXENV=py27-dj1.2 }
-    - { python: '2.7', env: TOXENV=py27-dj1.3 }
     - { python: '2.7', env: TOXENV=py27-dj1.4 }
     - { python: '2.7', env: TOXENV=py27-dj1.5 }
     - { python: '2.7', env: TOXENV=py27-dj1.6 }
