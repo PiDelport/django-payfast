@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import unicode_literals
+
 import unittest
 from collections import OrderedDict
 
@@ -17,11 +19,11 @@ def _test_data():
     data['merchant_id'] = '10000100'
     data['merchant_key'] = '46f0cd694581a'
     data['notify_url'] = "http://127.0.0.1:8000/payfast/notify/"
-    data['name_first'] = u"Вася"
-    data['last_name'] = u'Пупников'
+    data['name_first'] = "Вася"
+    data['last_name'] = 'Пупников'
     data['m_payment_id'] = '23'
     data['amount'] = '234'
-    data['item_name'] = u"Payment (Планета суши). ID:272-15"
+    data['item_name'] = "Payment (Планета суши). ID:272-15"
     return data
 
 
@@ -87,8 +89,8 @@ class NotifyTest(TestCase):
         self.assertTrue(self.signal_handler.called)
 
         order = _order()
-        self.assertEqual(order.request_ip, u'127.0.0.1')
-        self.assertEqual(order.debug_info, u'')
+        self.assertEqual(order.request_ip, '127.0.0.1')
+        self.assertEqual(order.debug_info, '')
         self.assertEqual(order.trusted, True)
 
     def test_untrusted_ip(self):
@@ -103,8 +105,8 @@ class NotifyTest(TestCase):
         self.assertFalse(self.signal_handler.called)
 
         order = _order()
-        self.assertEqual(order.request_ip, u'127.0.0.2')
-        self.assertEqual(order.debug_info, u'__all__: untrusted ip: 127.0.0.2')
+        self.assertEqual(order.request_ip, '127.0.0.2')
+        self.assertEqual(order.debug_info, '__all__: untrusted ip: 127.0.0.2')
         self.assertEqual(order.trusted, False)
 
     def test_non_existing_order(self):
@@ -121,13 +123,13 @@ class NotifyTest(TestCase):
         self.assertFalse(self.signal_handler.called)
 
         order = _order()
-        self.assertEqual(order.request_ip, u'127.0.0.1')
-        self.assertEqual(set(order.debug_info.split(u'|')), {
-            u'amount_gross: Amount is not the same: {} != None'.format(
+        self.assertEqual(order.request_ip, '127.0.0.1')
+        self.assertEqual(set(order.debug_info.split('|')), {
+            'amount_gross: Amount is not the same: {} != None'.format(
                 # Django 1.8 returns more precise DecimalField values.
-                u'100' if django.VERSION < (1, 8) else u'100.00'
+                '100' if django.VERSION < (1, 8) else '100.00'
             ),
-            u'item_name: This field is required.',
-            u'merchant_id: This field is required.',
+            'item_name: This field is required.',
+            'merchant_id: This field is required.',
         })
         self.assertEqual(order.trusted, False)

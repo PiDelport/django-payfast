@@ -1,9 +1,20 @@
 """
 This module can be used without django
 """
+import sys
 from hashlib import md5
-import urllib2
-from urllib import urlencode
+
+if sys.version_info < (3,):
+    from urllib2 import HTTPError
+    from urllib import urlencode
+    from urllib2 import urlopen
+else:
+    from urllib.error import HTTPError
+    from urllib.parse import urlencode
+    from urllib.request import urlopen
+
+_str = unicode if sys.version_info < (3,) else str  # noqa: F821
+
 
 POSTBACK_URL = '/eng/query/validate'
 POSTBACK_SERVER = 'https://www.payfast.co.za'
@@ -11,7 +22,7 @@ POSTBACK_SERVER = 'https://www.payfast.co.za'
 
 def _values_to_encode(data):
     return [
-        (k, unicode(data[k]).strip().encode('utf8'),)
+        (k, _str(data[k]).strip().encode('utf8'))
         for k in data if data[k] and k != 'signature'
     ]
 
@@ -38,8 +49,8 @@ def data_is_valid(post_data, postback_server=POSTBACK_SERVER):
     post_str = urlencode(_values_to_encode(post_data))
     postback_url = postback_server.rstrip('/') + POSTBACK_URL
     try:
-        response = urllib2.urlopen(postback_url, post_str).read()
-    except urllib2.HTTPError:
+        response = urlopen(postback_url, post_str).read()
+    except HTTPError:
         return None
     if response == 'VALID':
         return True

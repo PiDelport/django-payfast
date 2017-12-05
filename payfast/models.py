@@ -1,5 +1,9 @@
+from __future__ import unicode_literals
+
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import six
+from django.utils.encoding import python_2_unicode_compatible
 
 try:
     from django.db.models import GenericIPAddressField as IPAddressField
@@ -9,10 +13,9 @@ except ImportError:
 from payfast import readable_models
 
 
-class PayFastOrder(models.Model):
-
-    # see http://djangosnippets.org/snippets/2180/
-    __metaclass__ = readable_models.ModelBase
+@python_2_unicode_compatible
+# see http://djangosnippets.org/snippets/2180/
+class PayFastOrder(six.with_metaclass(readable_models.ModelBase, models.Model)):
 
     # Transaction Details
     m_payment_id = models.AutoField(primary_key=True)
@@ -76,8 +79,8 @@ class PayFastOrder(models.Model):
         merchant_id = "The Merchant ID as given by the PayFast system."
         signature = "A security signature of the transmitted data"
 
-    def __unicode__(self):
-        return u'PayFastOrder #%s (%s)' % (self.pk, self.created_at)
+    def __str__(self):
+        return 'PayFastOrder #%s (%s)' % (self.pk, self.created_at)
 
     class Meta:
         verbose_name = 'PayFast order'
