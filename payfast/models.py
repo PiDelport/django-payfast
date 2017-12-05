@@ -5,11 +5,6 @@ from django.contrib.auth.models import User
 from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible
 
-try:
-    from django.db.models import GenericIPAddressField as IPAddressField
-except ImportError:
-    from django.db.models import IPAddressField
-
 from payfast import readable_models
 
 
@@ -57,7 +52,7 @@ class PayFastOrder(six.with_metaclass(readable_models.ModelBase, models.Model)):
     # Utility fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    request_ip = IPAddressField(null=True, blank=True)
+    request_ip = models.GenericIPAddressField(null=True, blank=True)
     debug_info = models.CharField(max_length=255, null=True, blank=True)
     trusted = models.NullBooleanField(default=None)
     user = models.ForeignKey(User, null=True, blank=True)
