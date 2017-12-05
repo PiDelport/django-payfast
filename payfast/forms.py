@@ -168,10 +168,10 @@ class NotifyForm(forms.ModelForm):
         self.instance.request_ip = self.ip
 
         # Decode body, for saving as debug_info
-        body_bytes = self.request.read()  # type: str
+        body_bytes = self.request.read()  # type: bytes
         body_encoding = (settings.DEFAULT_CHARSET if self.request.encoding is None else
                          self.request.encoding)
-        body_str = body_bytes.decode(body_encoding)  # type: bytes
+        body_str = body_bytes.decode(body_encoding)  # type: str
 
         self.instance.debug_info = body_str
 
