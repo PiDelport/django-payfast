@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import datetime
+from django.utils import timezone
 from django.conf import settings
 
 
@@ -39,8 +39,8 @@ class Migration(migrations.Migration):
                 ('email_address', models.CharField(help_text='Email address of the payer.', max_length=100, null=True, blank=True)),
                 ('merchant_id', models.CharField(help_text='The Merchant ID as given by the PayFast system.', max_length=15)),
                 ('signature', models.CharField(help_text='A security signature of the transmitted data', max_length=32, null=True, blank=True)),
-                ('created_at', models.DateTimeField(default=datetime.datetime.now)),
-                ('updated_at', models.DateTimeField(default=datetime.datetime.now)),
+                ('created_at', models.DateTimeField(default=timezone.now)),
+                ('updated_at', models.DateTimeField(default=timezone.now)),
                 ('request_ip', models.GenericIPAddressField(null=True, blank=True)),
                 ('debug_info', models.CharField(max_length=255, null=True, blank=True)),
                 ('trusted', models.NullBooleanField(default=None)),
