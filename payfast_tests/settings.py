@@ -2,6 +2,18 @@ import django
 import os
 import sys
 
+
+# Turn timezone awareness violation warnings into errors, for development.
+# See https://docs.djangoproject.com/en/stable/topics/i18n/timezones/#code
+import warnings
+warnings.filterwarnings(
+    'error',
+    r'DateTimeField .* received a naive datetime',
+    RuntimeWarning,
+    r'django\.db\.models\.fields',
+)
+
+
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 join = lambda p: os.path.abspath(os.path.join(PROJECT_ROOT, p))  # noqa: E731
 
@@ -28,6 +40,7 @@ DATABASES = {
     }
 }
 
+USE_TZ = True
 TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
