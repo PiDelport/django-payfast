@@ -1,4 +1,12 @@
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
+
+if hasattr(settings, 'PAYFAST_URL_BASE'):
+    URL_BASE = settings.PAYFAST_URL_BASE
+else:
+    raise ImproperlyConfigured(
+        'Please configure settings.PAYFAST_URL_BASE with the base URL of your site'
+        ' (as a string, or a callable returning a string)')
 
 TEST_MODE = getattr(settings, 'PAYFAST_TEST_MODE', False)
 

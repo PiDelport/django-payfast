@@ -1,9 +1,10 @@
 from collections import OrderedDict
 
+from six.moves.urllib_parse import urljoin
+
 import django
 from django import forms
 from django.conf import settings
-from django.contrib.sites.models import Site
 
 from payfast.models import PayFastOrder
 from payfast.api import signature, data_is_valid
@@ -17,11 +18,14 @@ else:
 
 
 def full_url(link):
-    current_site = Site.objects.get_current()
-    url = current_site.domain + link
-    if not url.startswith('http'):
-        url = 'http://' + url
-    return url
+    """
+    Return an absolute version of a possibly-relative URL.
+
+    This uses the PAYFAST_URL_BASE setting.
+    """
+    url_base = (conf.URL_BASE() if callable(conf.URL_BASE) else
+                conf.URL_BASE)
+    return urljoin(url_base, link)
 
 
 def notify_url():

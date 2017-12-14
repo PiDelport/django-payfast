@@ -25,6 +25,8 @@ sys.path.insert(0, join('..'))
 PAYFAST_MERCHANT_ID = '10000100'
 PAYFAST_MERCHANT_KEY = '46f0cd694581a'
 
+PAYFAST_URL_BASE = 'http://example.com/'
+
 # ===========================
 
 DEBUG = True
@@ -96,7 +98,6 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.admin',
     'payfast',
 ]
