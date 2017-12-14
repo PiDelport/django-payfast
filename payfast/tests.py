@@ -30,7 +30,7 @@ def _test_data():
 def _notify_data(data, payment_form):
     notify_data = data.copy()
     # prepare server data
-    notify_data['m_payment_id'] = payment_form.order.pk
+    notify_data['m_payment_id'] = payment_form.order.m_payment_id
     notify_data['amount_gross'] = data['amount']
     del notify_data['amount']
     del notify_data['merchant_key']
@@ -119,7 +119,7 @@ class NotifyTest(TestCase):
 
     def test_invalid_request(self):
         form = PayFastForm(initial={'amount': 100, 'item_name': 'foo'})
-        response = self.client.post(notify_url(), {'m_payment_id': form.order.pk})
+        response = self.client.post(notify_url(), {'m_payment_id': form.order.m_payment_id})
         self.assertEqual(response.status_code, 404)
         self.assertEqual(self.notify_handler_orders, [])
 

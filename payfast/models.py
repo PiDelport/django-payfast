@@ -13,7 +13,7 @@ from payfast import readable_models
 class PayFastOrder(six.with_metaclass(readable_models.ModelBase, models.Model)):
 
     # Transaction Details
-    m_payment_id = models.AutoField(primary_key=True)
+    m_payment_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
     pf_payment_id = models.CharField(max_length=40, unique=True, null=True, blank=True)
     payment_status = models.CharField(max_length=20, null=True, blank=True)
     item_name = models.CharField(max_length=100)
@@ -75,7 +75,12 @@ class PayFastOrder(six.with_metaclass(readable_models.ModelBase, models.Model)):
         signature = "A security signature of the transmitted data"
 
     def __str__(self):
-        return 'PayFastOrder #%s (%s)' % (self.pk, self.created_at)
+        return 'PayFastOrder {id} ({created_at})'.format(
+            # Transitional code: Show the pk if m_payment_id is missing.
+            id=('pk={}'.format(self.pk) if self.m_payment_id is None else
+                self.m_payment_id),
+            created_at=self.created_at,
+        )
 
     class Meta:
         verbose_name = 'PayFast order'

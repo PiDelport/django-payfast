@@ -110,7 +110,11 @@ class PayFastForm(HiddenForm):
             amount_gross=self.initial['amount'],
         )
 
-        self.initial['m_payment_id'] = self.order.pk
+        # Transitional code: Initialise m_payment_id from the pk.
+        self.order.m_payment_id = str(self.order.pk)
+        self.order.save()
+
+        self.initial['m_payment_id'] = self.order.m_payment_id
 
         # we need self.initial but it is unordered
         data = OrderedDict(

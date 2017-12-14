@@ -15,8 +15,8 @@ def notify_handler(request):
     On successful access 'payfast.signals.notify' signal is sent.
     Orders should be processed in signal handler.
     """
-    id = request.POST.get('m_payment_id', None)
-    order = get_object_or_404(PayFastOrder, pk=id)
+    m_payment_id = request.POST.get('m_payment_id', None)
+    order = get_object_or_404(PayFastOrder, m_payment_id=m_payment_id)
 
     form = NotifyForm(request, request.POST, instance=order)
     if not form.is_valid():
