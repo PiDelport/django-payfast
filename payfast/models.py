@@ -79,4 +79,3 @@ class PayFastOrder(six.with_metaclass(readable_models.ModelBase, models.Model)):
 
     class Meta:
         verbose_name = 'PayFast order'
-        verbose_name_plural = 'PayFast orders'
