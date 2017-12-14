@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import unicode_literals
+
 import unittest
 from collections import OrderedDict
 
@@ -13,16 +15,16 @@ import payfast.signals
 
 
 def _test_data():
-    data = OrderedDict()
-    data['merchant_id'] = '10000100'
-    data['merchant_key'] = '46f0cd694581a'
-    data['notify_url'] = "http://127.0.0.1:8000/payfast/notify/"
-    data['name_first'] = u"Вася"
-    data['last_name'] = u'Пупников'
-    data['m_payment_id'] = '23'
-    data['amount'] = '234'
-    data['item_name'] = u"Payment (Планета суши). ID:272-15"
-    return data
+    return OrderedDict([
+        ('merchant_id', '10000100'),
+        ('merchant_key', '46f0cd694581a'),
+        ('notify_url', "http://127.0.0.1:8000/payfast/notify/"),
+        ('name_first', "Вася"),
+        ('last_name', 'Пупников'),
+        ('m_payment_id', '23'),
+        ('amount', '234'),
+        ('item_name', "Payment (Планета суши). ID:272-15"),
+    ])
 
 
 def _notify_data(data, payment_form):
@@ -54,14 +56,14 @@ class NotifyTest(TestCase):
         conf.MERCHANT_ID = '10000100'
         conf.REQUIRE_AMOUNT_MATCH = True
 
-        def handler(sender, **kwargs):
-            handler.called = True
-        handler.called = False
-        self.signal_handler = handler
-        payfast.signals.notify.connect(self.signal_handler)
+        self.notify_handler_orders = []  # type: list
+        payfast.signals.notify.connect(self.notify_handler)
 
     def tearDown(self):
-        payfast.signals.notify.disconnect(self.signal_handler)
+        payfast.signals.notify.disconnect(self.notify_handler)
+
+    def notify_handler(self, sender, order, **kwargs):
+        self.notify_handler_orders.append(order)
 
     def _create_order(self):
         """
@@ -80,15 +82,16 @@ class NotifyTest(TestCase):
 
     def test_notify(self):
         notify_data = self._create_order()
+        order = _order()
 
         # the server sends a notification
         response = self.client.post(notify_url(), notify_data)
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(self.signal_handler.called)
+        self.assertEqual(self.notify_handler_orders, [order])
 
         order = _order()
-        self.assertEqual(order.request_ip, u'127.0.0.1')
-        self.assertEqual(order.debug_info, u'')
+        self.assertEqual(order.request_ip, '127.0.0.1')
+        self.assertEqual(order.debug_info, '')
         self.assertEqual(order.trusted, True)
 
     def test_untrusted_ip(self):
@@ -100,17 +103,17 @@ class NotifyTest(TestCase):
         # the server sends a notification
         response = self.client.post(notify_url(), notify_data, REMOTE_ADDR='127.0.0.2')
         self.assertEqual(response.status_code, 404)
-        self.assertFalse(self.signal_handler.called)
+        self.assertEqual(self.notify_handler_orders, [])
 
         order = _order()
-        self.assertEqual(order.request_ip, u'127.0.0.2')
-        self.assertEqual(order.debug_info, u'__all__: untrusted ip: 127.0.0.2')
+        self.assertEqual(order.request_ip, '127.0.0.2')
+        self.assertEqual(order.debug_info, '__all__: untrusted ip: 127.0.0.2')
         self.assertEqual(order.trusted, False)
 
     def test_non_existing_order(self):
         response = self.client.post(notify_url(), {})
         self.assertEqual(response.status_code, 404)
-        self.assertFalse(self.signal_handler.called)
+        self.assertEqual(self.notify_handler_orders, [])
 
         self.assertQuerysetEqual(PayFastOrder.objects.all(), [])
 
@@ -118,16 +121,19 @@ class NotifyTest(TestCase):
         form = PayFastForm(initial={'amount': 100, 'item_name': 'foo'})
         response = self.client.post(notify_url(), {'m_payment_id': form.order.pk})
         self.assertEqual(response.status_code, 404)
-        self.assertFalse(self.signal_handler.called)
+        self.assertEqual(self.notify_handler_orders, [])
 
         order = _order()
-        self.assertEqual(order.request_ip, u'127.0.0.1')
-        self.assertEqual(set(order.debug_info.split(u'|')), {
-            u'amount_gross: Amount is not the same: {} != None'.format(
-                # Django 1.8 returns more precise DecimalField values.
-                u'100' if django.VERSION < (1, 8) else u'100.00'
+        self.assertEqual(order.request_ip, '127.0.0.1')
+        self.assertEqual(set(order.debug_info.split('|')), {
+            'amount_gross: Amount is not the same: {} != None'.format(
+                '100' if django.VERSION < (1, 8) else
+                # Django 1.8+ returns more precise DecimalField values
+                '100.00' if django.VERSION < (2, 0) else
+                # Django 2.0+ returns less precise DecimalField values again.
+                '100'
             ),
-            u'item_name: This field is required.',
-            u'merchant_id: This field is required.',
+            'item_name: This field is required.',
+            'merchant_id: This field is required.',
         })
         self.assertEqual(order.trusted, False)

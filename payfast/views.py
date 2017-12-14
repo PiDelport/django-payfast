@@ -1,10 +1,6 @@
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
-
-try:
-    from django.views.decorators.csrf import csrf_exempt
-except ImportError:  # django < 1.2
-    from django.contrib.csrf.middleware import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt
 
 from payfast.forms import NotifyForm
 from payfast.models import PayFastOrder

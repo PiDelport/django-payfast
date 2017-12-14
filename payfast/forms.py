@@ -2,12 +2,18 @@ from collections import OrderedDict
 
 import django
 from django import forms
-from django.core.urlresolvers import reverse
+from django.conf import settings
 from django.contrib.sites.models import Site
 
 from payfast.models import PayFastOrder
 from payfast.api import signature, data_is_valid
 from payfast import conf
+
+# Django 1.10 introduces django.urls
+if django.VERSION < (1, 10):
+    from django.core.urlresolvers import reverse
+else:
+    from django.urls import reverse
 
 
 def full_url(link):
@@ -103,9 +109,10 @@ class PayFastForm(HiddenForm):
         self.initial['m_payment_id'] = self.order.pk
 
         # we need self.initial but it is unordered
-        data = OrderedDict()
-        for key in self.fields.keys():
-            data[key] = self.initial.get(key, None)
+        data = OrderedDict(
+            (key, self.initial.get(key, None))
+            for key in self.fields.keys()
+        )
         self._signature = self.fields['signature'].initial = signature(data)
 
 
@@ -161,11 +168,13 @@ class NotifyForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         self.instance.request_ip = self.ip
 
-        # Django 1.3 adds read() to get the request body.
-        if django.VERSION < (1, 3):
-            self.instance.debug_info = self.request.raw_post_data
-        else:
-            self.instance.debug_info = self.request.read()
+        # Decode body, for saving as debug_info
+        body_bytes = self.request.read()  # type: bytes
+        body_encoding = (settings.DEFAULT_CHARSET if self.request.encoding is None else
+                         self.request.encoding)
+        body_str = body_bytes.decode(body_encoding)  # type: str
+
+        self.instance.debug_info = body_str
 
         self.instance.trusted = True
         return super(NotifyForm, self).save(*args, **kwargs)

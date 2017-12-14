@@ -1,18 +1,16 @@
+from __future__ import unicode_literals
+
+import six
 from django.db import models
 from django.contrib.auth.models import User
-
-try:
-    from django.db.models import GenericIPAddressField as IPAddressField
-except ImportError:
-    from django.db.models import IPAddressField
+from django.utils.encoding import python_2_unicode_compatible
 
 from payfast import readable_models
 
 
-class PayFastOrder(models.Model):
-
-    # see http://djangosnippets.org/snippets/2180/
-    __metaclass__ = readable_models.ModelBase
+@python_2_unicode_compatible
+# see http://djangosnippets.org/snippets/2180/
+class PayFastOrder(six.with_metaclass(readable_models.ModelBase, models.Model)):
 
     # Transaction Details
     m_payment_id = models.AutoField(primary_key=True)
@@ -54,10 +52,10 @@ class PayFastOrder(models.Model):
     # Utility fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    request_ip = IPAddressField(null=True, blank=True)
+    request_ip = models.GenericIPAddressField(null=True, blank=True)
     debug_info = models.CharField(max_length=255, null=True, blank=True)
     trusted = models.NullBooleanField(default=None)
-    user = models.ForeignKey(User, null=True, blank=True)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
 
     class HelpText:
         m_payment_id = "Unique transaction ID on the receiver's system."
@@ -76,8 +74,8 @@ class PayFastOrder(models.Model):
         merchant_id = "The Merchant ID as given by the PayFast system."
         signature = "A security signature of the transmitted data"
 
-    def __unicode__(self):
-        return u'PayFastOrder #%s (%s)' % (self.pk, self.created_at)
+    def __str__(self):
+        return 'PayFastOrder #%s (%s)' % (self.pk, self.created_at)
 
     class Meta:
         verbose_name = 'PayFast order'

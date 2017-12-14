@@ -2,8 +2,15 @@
 This module can be used without django
 """
 from hashlib import md5
-import urllib2
-from urllib import urlencode
+
+# Python 2 compatibility:
+from six import text_type as str
+from six.moves.urllib.error import HTTPError
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import urlopen
+
+from django.conf import settings
+
 
 POSTBACK_URL = '/eng/query/validate'
 POSTBACK_SERVER = 'https://www.payfast.co.za'
@@ -11,7 +18,7 @@ POSTBACK_SERVER = 'https://www.payfast.co.za'
 
 def _values_to_encode(data):
     return [
-        (k, unicode(data[k]).strip().encode('utf8'),)
+        (k, str(data[k]).strip().encode('utf8'))
         for k in data if data[k] and k != 'signature'
     ]
 
@@ -27,7 +34,7 @@ def signature(data):
     'data' should be a OrderedDict instance.
     """
     text = _signature_string(data)
-    return md5(text).hexdigest()
+    return md5(text.encode('ascii')).hexdigest()
 
 
 def data_is_valid(post_data, postback_server=POSTBACK_SERVER):
@@ -35,11 +42,14 @@ def data_is_valid(post_data, postback_server=POSTBACK_SERVER):
     Validates data via the postback. Returns True if data is valid,
     False if data is invalid and None if the request failed.
     """
-    post_str = urlencode(_values_to_encode(post_data))
+    post_str = urlencode(_values_to_encode(post_data))  # type: str
+    # FIXME: No Content-Type header.
+    post_bytes = post_str.encode(settings.DEFAULT_CHARSET)  # type: bytes
+
     postback_url = postback_server.rstrip('/') + POSTBACK_URL
     try:
-        response = urllib2.urlopen(postback_url, post_str).read()
-    except urllib2.HTTPError:
+        response = urlopen(postback_url, data=post_bytes).read()
+    except HTTPError:
         return None
     if response == 'VALID':
         return True

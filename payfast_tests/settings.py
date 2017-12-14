@@ -2,7 +2,17 @@ import django
 import os
 import sys
 
-from distutils.version import StrictVersion
+
+# Turn timezone awareness violation warnings into errors, for development.
+# See https://docs.djangoproject.com/en/stable/topics/i18n/timezones/#code
+import warnings
+warnings.filterwarnings(
+    'error',
+    r'DateTimeField .* received a naive datetime',
+    RuntimeWarning,
+    r'django\.db\.models\.fields',
+)
+
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 join = lambda p: os.path.abspath(os.path.join(PROJECT_ROOT, p))  # noqa: E731
@@ -30,6 +40,7 @@ DATABASES = {
     }
 }
 
+USE_TZ = True
 TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
@@ -37,24 +48,34 @@ USE_I18N = True
 USE_L10N = True
 MEDIA_ROOT = join('media')
 MEDIA_URL = '/media/'
-ADMIN_MEDIA_PREFIX = '/media/admin/'
 SECRET_KEY = '5mcs97ar-(nnxjok67290+0^sr!e(ax=x$2-!8dqy25ff-l1*a='
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-)
+]
+
+# Django 1.10 migrates MIDDLEWARE_CLASSES to MIDDLEWARE
+if django.VERSION < (1, 10):
+    MIDDLEWARE_CLASSES = MIDDLEWARE
+    del MIDDLEWARE
 
 ROOT_URLCONF = 'urls'
 
-if django.get_version() >= StrictVersion("1.8"):
+# Django 1.8 migrates TEMPLATE_* to TEMPLATES
+if django.VERSION < (1, 8):
+    TEMPLATE_DEBUG = DEBUG
+    TEMPLATE_LOADERS = [
+        'django.template.loaders.filesystem.Loader',
+        'django.template.loaders.app_directories.Loader',
+    ]
+    TEMPLATE_DIRS = [
+        join('templates'),
+    ]
+else:
     TEMPLATES = [
         {
             "BACKEND": 'django.template.backends.django.DjangoTemplates',
@@ -69,13 +90,6 @@ if django.get_version() >= StrictVersion("1.8"):
             }
         }
     ]
-else:
-    TEMPLATE_DEBUG = DEBUG
-    TEMPLATE_LOADERS = (
-        'django.template.loaders.filesystem.Loader',
-        'django.template.loaders.app_directories.Loader',
-    )
-    TEMPLATE_DIRS = (join('templates'),)
 
 
 INSTALLED_APPS = [
@@ -88,7 +102,7 @@ INSTALLED_APPS = [
 ]
 
 
-if django.get_version() < StrictVersion("1.7"):
+if django.VERSION < (1, 7):
     # test migrations if South is available
     try:
         import south  # noqa: F401
