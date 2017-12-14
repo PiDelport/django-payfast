@@ -49,6 +49,9 @@ class PayFastForm(HiddenForm):
     'user' parameter: it is the User instance the order is purchased by. If
     'user' is specified, 'name_first', 'name_last' and 'email_address' fields
     will be filled automatically if they are not passed with 'initial'.
+
+    If `m_payment_id` is specified, it will uniquely identify the PayFastOrder.
+    Otherwise, a new PayFastOrder will be created for each form instantiation.
     """
 
     target = conf.PROCESS_URL
@@ -104,17 +107,38 @@ class PayFastForm(HiddenForm):
 
         super(PayFastForm, self).__init__(*args, **kwargs)
 
-        # new order reference number is issued each time form is instantiated
-        self.order = PayFastOrder.objects.create(
-            user=user,
-            amount_gross=self.initial['amount'],
-        )
+        if 'm_payment_id' in self.initial:
+            # If the caller supplies m_payment_id, find the existing order, or create it.
+            (self.order, created) = PayFastOrder.objects.get_or_create(
+                m_payment_id=self.initial['m_payment_id'],
+                defaults=dict(
+                    user=user,
+                    amount_gross=self.initial['amount'],
+                ),
+            )
+            if not created:
+                # If the order is existing, check the user and amount fields,
+                # and update if necessary.
+                #
+                # XXX: Also consistency-check that the order is not paid yet?
+                #
+                if not (self.order.user == user and
+                        self.order.amount_gross == self.initial['amount']):
+                    self.order.user = user
+                    self.order.amount_gross = self.initial['amount']
+                    self.order.save()
+        else:
+            # Old path: Create a new PayFastOrder each time form is instantiated.
+            self.order = PayFastOrder.objects.create(
+                user=user,
+                amount_gross=self.initial['amount'],
+            )
 
-        # Transitional code: Initialise m_payment_id from the pk.
-        self.order.m_payment_id = str(self.order.pk)
-        self.order.save()
+            # Initialise m_payment_id from the pk.
+            self.order.m_payment_id = str(self.order.pk)
+            self.order.save()
 
-        self.initial['m_payment_id'] = self.order.m_payment_id
+            self.initial['m_payment_id'] = self.order.m_payment_id
 
         # we need self.initial but it is unordered
         data = OrderedDict(
