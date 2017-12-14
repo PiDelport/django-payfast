@@ -30,11 +30,8 @@ Install
 
 Then add 'payfast' to INSTALLED_APPS and execute ::
 
-    $ python manage.py syncdb
+    $ python manage.py migrate
 
-or (if South is in use) ::
-
-    $ python manage.py migrate payfast
 
 Settings
 ========

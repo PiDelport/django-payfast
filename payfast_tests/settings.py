@@ -100,16 +100,3 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'payfast',
 ]
-
-
-if django.VERSION < (1, 7):
-    # test migrations if South is available
-    try:
-        import south  # noqa: F401
-        if 'south' not in INSTALLED_APPS:
-            INSTALLED_APPS += ['south']
-    except ImportError:
-        pass
-    else:
-        del south
-del django
