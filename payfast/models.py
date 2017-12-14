@@ -64,7 +64,7 @@ class PayFastOrder(six.with_metaclass(readable_models.ModelBase, models.Model)):
         item_name = "The name of the item being charged for."
         item_description = "The description of the item being charged for."
         amount_gross = "The total amount which the payer paid."
-        amount_fee = "The total in fees which was deducated from the amount."
+        amount_fee = "The total in fees which was deducted from the amount."
         amount_net = "The net amount credited to the receiver's account."
 
         name_first = "First name of the payer."
