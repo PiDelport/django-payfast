@@ -1,4 +1,6 @@
+import sys
 from collections import OrderedDict
+from ipaddress import ip_address, ip_network
 
 from six.moves.urllib_parse import urljoin
 
@@ -149,6 +151,30 @@ class PayFastForm(HiddenForm):
         self._signature = self.fields['signature'].initial = signature(data)
 
 
+def is_payfast_ip_address(ip_address_str):
+    """
+    Return True if ip_address_str matches one of PayFast's server IP addresses.
+
+    Setting: `PAYFAST_IP_ADDRESSES`
+
+    :type ip_address_str: str
+    :rtype: bool
+    """
+    # TODO: Django system check for validity?
+    payfast_ip_addresses = getattr(settings, 'PAYFAST_IP_ADDRESSES',
+                                   conf.DEFAULT_PAYFAST_IP_ADDRESSES)
+
+    if sys.version_info < (3,):
+        # Python 2 usability: Coerce str to unicode, to avoid very common TypeErrors.
+        # (On Python 3, this should generally not happen:
+        #  let unexpected bytes values fail as expected.)
+        ip_address_str = unicode(ip_address_str)  # noqa: F821
+        payfast_ip_addresses = [unicode(address) for address in payfast_ip_addresses]  # noqa: F821
+
+    return any(ip_address(ip_address_str) in ip_network(payfast_address)
+               for payfast_address in payfast_ip_addresses)
+
+
 class NotifyForm(forms.ModelForm):
 
     def __init__(self, request, *args, **kwargs):
@@ -159,7 +185,7 @@ class NotifyForm(forms.ModelForm):
 
     def clean(self):
         self.ip = self.request.META.get(conf.IP_HEADER, None)
-        if self.ip not in conf.IP_ADDRESSES:
+        if not is_payfast_ip_address(self.ip):
             raise forms.ValidationError('untrusted ip: %s' % self.ip)
 
         # Verify signature

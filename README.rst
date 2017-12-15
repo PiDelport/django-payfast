@@ -57,8 +57,8 @@ If your web server is behind reverse proxy you should also specify
 (default is 'REMOTE_ADDR').
 
 There is an option with PayFast server IP addresses (``PAYFAST_IP_ADDRESSES``).
-It is a list with current PayFast servers' ip addresses. If they will
-change then override this option in your settings.py.
+It is a list with current PayFast servers' IP host / network addresses.
+If they will change then override this option in your settings.py.
 
 You also have to setup your PayFast account on payfast.co.za. Login into the
 admin panel, go to 'My Account -> Integration', enable the Instant Transaction

@@ -6,9 +6,10 @@ import unittest
 from collections import OrderedDict
 
 import django
-from django.test import TestCase
+from django.conf import settings
+from django.test import TestCase, SimpleTestCase, override_settings
 
-from payfast.forms import notify_url, PayFastForm, NotifyForm
+from payfast.forms import notify_url, PayFastForm, NotifyForm, is_payfast_ip_address
 from payfast.models import PayFastOrder
 from payfast.api import signature
 from payfast import conf
@@ -49,10 +50,10 @@ class SignatureTest(unittest.TestCase):
         self.assertEqual(signature(data), 'c71d41dd5041bf28d819fe102ab0106b')
 
 
+@override_settings(PAYFAST_IP_ADDRESSES=['127.0.0.1'])
 class NotifyTest(TestCase):
 
     def setUp(self):
-        conf.IP_ADDRESSES = ['127.0.0.1']
         conf.USE_POSTBACK = False
         conf.MERCHANT_ID = '10000100'
         conf.REQUIRE_AMOUNT_MATCH = True
@@ -156,3 +157,57 @@ class NotifyTest(TestCase):
             'merchant_id: This field is required.',
         })
         self.assertEqual(order.trusted, False)
+
+
+class IPTest(SimpleTestCase):
+
+    @override_settings(PAYFAST_IP_ADDRESSES=[])
+    def test_no_addresses(self):
+        self.assertFalse(is_payfast_ip_address('127.0.0.1'))
+        self.assertFalse(is_payfast_ip_address('41.74.179.194'))
+
+    @override_settings(PAYFAST_IP_ADDRESSES=['127.0.0.1'])
+    def test_localhost(self):
+        self.assertTrue(is_payfast_ip_address('127.0.0.1'))
+        self.assertFalse(is_payfast_ip_address('41.74.179.194'))
+
+    @override_settings(PAYFAST_IP_ADDRESSES=['41.74.179.194'])
+    def test_one_server(self):
+        self.assertFalse(is_payfast_ip_address('127.0.0.1'))
+        self.assertTrue(is_payfast_ip_address('41.74.179.194'))
+
+    @override_settings(PAYFAST_IP_ADDRESSES=['196.33.227.224', '196.33.227.225'])
+    def test_more_servers(self):
+        self.assertFalse(is_payfast_ip_address('127.0.0.1'))
+        self.assertFalse(is_payfast_ip_address('41.74.179.194'))
+        self.assertTrue(is_payfast_ip_address('196.33.227.224'))
+        self.assertTrue(is_payfast_ip_address('196.33.227.225'))
+
+    @override_settings(PAYFAST_IP_ADDRESSES=['196.33.227.224/31'])
+    def test_more_servers_masked(self):
+        self.assertFalse(is_payfast_ip_address('127.0.0.1'))
+        self.assertFalse(is_payfast_ip_address('41.74.179.194'))
+
+        self.assertFalse(is_payfast_ip_address('196.33.227.223'))
+        self.assertTrue(is_payfast_ip_address('196.33.227.224'))
+        self.assertTrue(is_payfast_ip_address('196.33.227.225'))
+        self.assertFalse(is_payfast_ip_address('196.33.227.226'))
+
+    @override_settings(PAYFAST_IP_ADDRESSES=[])
+    def test_default_ip_addresses(self):
+        del settings.PAYFAST_IP_ADDRESSES
+
+        self.assertFalse(is_payfast_ip_address('127.0.0.1'))
+        self.assertFalse(is_payfast_ip_address('196.33.227.224'))
+
+        # Default PayFast range: 197.97.145.144/28
+        self.assertFalse(is_payfast_ip_address('197.97.145.143'))
+        self.assertTrue(all(is_payfast_ip_address('197.97.145.{}'.format(n))
+                            for n in range(144, 160)))
+        self.assertFalse(is_payfast_ip_address('197.97.145.160'))
+
+        # Default PayFast range: 41.74.179.192/27
+        self.assertFalse(is_payfast_ip_address('41.74.179.191'))
+        self.assertTrue(all(is_payfast_ip_address('41.74.179.{}'.format(n))
+                            for n in range(192, 224)))
+        self.assertFalse(is_payfast_ip_address('41.74.179.225'))
