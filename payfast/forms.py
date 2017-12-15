@@ -200,7 +200,7 @@ class NotifyForm(forms.ModelForm):
                          self.request.encoding)
         body_str = body_bytes.decode(body_encoding)  # type: str
 
-        self.instance.debug_info = body_str
+        self.instance.debug_info = body_str[:255]
 
         self.instance.trusted = True
         return super(NotifyForm, self).save(*args, **kwargs)
