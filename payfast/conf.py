@@ -33,7 +33,9 @@ USE_POSTBACK = getattr(settings, 'PAYFAST_USE_POSTBACK', True)
 # request.META key with client ip address
 IP_HEADER = getattr(settings, 'PAYFAST_IP_HEADER', 'REMOTE_ADDR')
 
+# Reference: https://developers.payfast.co.za/documentation/#ip-addresses
+# The values below are current as of 2017 December.
 DEFAULT_PAYFAST_IP_ADDRESSES = [
-    '196.33.227.224',
-    '196.33.227.225',
+    '197.97.145.144/28',
+    '41.74.179.192/27',
 ]

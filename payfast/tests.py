@@ -192,3 +192,22 @@ class IPTest(SimpleTestCase):
         self.assertTrue(is_payfast_ip_address('196.33.227.224'))
         self.assertTrue(is_payfast_ip_address('196.33.227.225'))
         self.assertFalse(is_payfast_ip_address('196.33.227.226'))
+
+    @override_settings(PAYFAST_IP_ADDRESSES=[])
+    def test_default_ip_addresses(self):
+        del settings.PAYFAST_IP_ADDRESSES
+
+        self.assertFalse(is_payfast_ip_address('127.0.0.1'))
+        self.assertFalse(is_payfast_ip_address('196.33.227.224'))
+
+        # Default PayFast range: 197.97.145.144/28
+        self.assertFalse(is_payfast_ip_address('197.97.145.143'))
+        self.assertTrue(all(is_payfast_ip_address('197.97.145.{}'.format(n))
+                            for n in range(144, 160)))
+        self.assertFalse(is_payfast_ip_address('197.97.145.160'))
+
+        # Default PayFast range: 41.74.179.192/27
+        self.assertFalse(is_payfast_ip_address('41.74.179.191'))
+        self.assertTrue(all(is_payfast_ip_address('41.74.179.{}'.format(n))
+                            for n in range(192, 224)))
+        self.assertFalse(is_payfast_ip_address('41.74.179.225'))
