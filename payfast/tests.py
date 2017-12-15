@@ -6,9 +6,9 @@ import unittest
 from collections import OrderedDict
 
 import django
-from django.test import TestCase
+from django.test import TestCase, SimpleTestCase, override_settings
 
-from payfast.forms import notify_url, PayFastForm, NotifyForm
+from payfast.forms import notify_url, PayFastForm, NotifyForm, is_payfast_ip_address
 from payfast.models import PayFastOrder
 from payfast.api import signature
 from payfast import conf
@@ -49,10 +49,10 @@ class SignatureTest(unittest.TestCase):
         self.assertEqual(signature(data), 'c71d41dd5041bf28d819fe102ab0106b')
 
 
+@override_settings(PAYFAST_IP_ADDRESSES=['127.0.0.1'])
 class NotifyTest(TestCase):
 
     def setUp(self):
-        conf.IP_ADDRESSES = ['127.0.0.1']
         conf.USE_POSTBACK = False
         conf.MERCHANT_ID = '10000100'
         conf.REQUIRE_AMOUNT_MATCH = True
@@ -156,3 +156,28 @@ class NotifyTest(TestCase):
             'merchant_id: This field is required.',
         })
         self.assertEqual(order.trusted, False)
+
+
+class IPTest(SimpleTestCase):
+
+    @override_settings(PAYFAST_IP_ADDRESSES=[])
+    def test_no_addresses(self):
+        self.assertFalse(is_payfast_ip_address('127.0.0.1'))
+        self.assertFalse(is_payfast_ip_address('41.74.179.194'))
+
+    @override_settings(PAYFAST_IP_ADDRESSES=['127.0.0.1'])
+    def test_localhost(self):
+        self.assertTrue(is_payfast_ip_address('127.0.0.1'))
+        self.assertFalse(is_payfast_ip_address('41.74.179.194'))
+
+    @override_settings(PAYFAST_IP_ADDRESSES=['41.74.179.194'])
+    def test_one_server(self):
+        self.assertFalse(is_payfast_ip_address('127.0.0.1'))
+        self.assertTrue(is_payfast_ip_address('41.74.179.194'))
+
+    @override_settings(PAYFAST_IP_ADDRESSES=['196.33.227.224', '196.33.227.225'])
+    def test_more_servers(self):
+        self.assertFalse(is_payfast_ip_address('127.0.0.1'))
+        self.assertFalse(is_payfast_ip_address('41.74.179.194'))
+        self.assertTrue(is_payfast_ip_address('196.33.227.224'))
+        self.assertTrue(is_payfast_ip_address('196.33.227.225'))

@@ -149,6 +149,20 @@ class PayFastForm(HiddenForm):
         self._signature = self.fields['signature'].initial = signature(data)
 
 
+def is_payfast_ip_address(ip_address_str):
+    """
+    Return True if ip_address_str matches one of PayFast's server IP addresses.
+
+    Setting: `PAYFAST_IP_ADDRESSES`
+
+    :type ip_address_str: str
+    :rtype: bool
+    """
+    payfast_ip_addresses = getattr(settings, 'PAYFAST_IP_ADDRESSES',
+                                   conf.DEFAULT_PAYFAST_IP_ADDRESSES)
+    return ip_address_str in payfast_ip_addresses
+
+
 class NotifyForm(forms.ModelForm):
 
     def __init__(self, request, *args, **kwargs):
@@ -159,7 +173,7 @@ class NotifyForm(forms.ModelForm):
 
     def clean(self):
         self.ip = self.request.META.get(conf.IP_HEADER, None)
-        if self.ip not in conf.IP_ADDRESSES:
+        if not is_payfast_ip_address(self.ip):
             raise forms.ValidationError('untrusted ip: %s' % self.ip)
 
         # Verify signature

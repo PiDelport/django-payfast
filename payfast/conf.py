@@ -32,4 +32,8 @@ USE_POSTBACK = getattr(settings, 'PAYFAST_USE_POSTBACK', True)
 
 # request.META key with client ip address
 IP_HEADER = getattr(settings, 'PAYFAST_IP_HEADER', 'REMOTE_ADDR')
-IP_ADDRESSES = getattr(settings, 'PAYFAST_IP_ADDRESSES', ['196.33.227.224', '196.33.227.225'])
+
+DEFAULT_PAYFAST_IP_ADDRESSES = [
+    '196.33.227.224',
+    '196.33.227.225',
+]
