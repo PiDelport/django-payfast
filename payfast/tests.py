@@ -6,6 +6,7 @@ import unittest
 from collections import OrderedDict
 
 import django
+from django.conf import settings
 from django.test import TestCase, SimpleTestCase, override_settings
 
 from payfast.forms import notify_url, PayFastForm, NotifyForm, is_payfast_ip_address
@@ -181,3 +182,13 @@ class IPTest(SimpleTestCase):
         self.assertFalse(is_payfast_ip_address('41.74.179.194'))
         self.assertTrue(is_payfast_ip_address('196.33.227.224'))
         self.assertTrue(is_payfast_ip_address('196.33.227.225'))
+
+    @override_settings(PAYFAST_IP_ADDRESSES=['196.33.227.224/31'])
+    def test_more_servers_masked(self):
+        self.assertFalse(is_payfast_ip_address('127.0.0.1'))
+        self.assertFalse(is_payfast_ip_address('41.74.179.194'))
+
+        self.assertFalse(is_payfast_ip_address('196.33.227.223'))
+        self.assertTrue(is_payfast_ip_address('196.33.227.224'))
+        self.assertTrue(is_payfast_ip_address('196.33.227.225'))
+        self.assertFalse(is_payfast_ip_address('196.33.227.226'))

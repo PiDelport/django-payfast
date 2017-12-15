@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from ipaddress import ip_address, ip_network
 
 from six.moves.urllib_parse import urljoin
 
@@ -158,9 +159,12 @@ def is_payfast_ip_address(ip_address_str):
     :type ip_address_str: str
     :rtype: bool
     """
+    # TODO: Django system check for validity?
     payfast_ip_addresses = getattr(settings, 'PAYFAST_IP_ADDRESSES',
                                    conf.DEFAULT_PAYFAST_IP_ADDRESSES)
-    return ip_address_str in payfast_ip_addresses
+
+    return any(ip_address(ip_address_str) in ip_network(payfast_address)
+               for payfast_address in payfast_ip_addresses)
 
 
 class NotifyForm(forms.ModelForm):
