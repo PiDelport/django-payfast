@@ -30,11 +30,8 @@ Install
 
 Then add 'payfast' to INSTALLED_APPS and execute ::
 
-    $ python manage.py syncdb
+    $ python manage.py migrate
 
-or (if South is in use) ::
-
-    $ python manage.py migrate payfast
 
 Settings
 ========
@@ -43,6 +40,17 @@ Specify your credentials in settings.py:
 
 * ``PAYFAST_MERCHANT_ID``
 * ``PAYFAST_MERCHANT_KEY``
+* ``PAYFAST_URL_BASE``: The public-facing base URL of your site
+  (used to qualify the notify URL passed to PayFast)
+
+``PAYFAST_URL_BASE`` can either be a string, or a callable returning a string.
+For example, if you use Django's sites framework to configure your domain::
+
+    def PAYFAST_BASE_URL():
+        from django.contrib.sites.models import Site
+        site = Site.objects.get_current()
+        return 'http://{}'.format(site.domain)
+
 
 If your web server is behind reverse proxy you should also specify
 ``PAYFAST_IP_HEADER`` option. It's a ``request.META`` key with client ip address

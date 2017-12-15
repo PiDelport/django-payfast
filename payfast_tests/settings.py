@@ -25,6 +25,8 @@ sys.path.insert(0, join('..'))
 PAYFAST_MERCHANT_ID = '10000100'
 PAYFAST_MERCHANT_KEY = '46f0cd694581a'
 
+PAYFAST_URL_BASE = 'http://example.com/'
+
 # ===========================
 
 DEBUG = True
@@ -43,7 +45,6 @@ DATABASES = {
 USE_TZ = True
 TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en-us'
-SITE_ID = 1
 USE_I18N = True
 USE_L10N = True
 MEDIA_ROOT = join('media')
@@ -96,20 +97,6 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.admin',
     'payfast',
 ]
-
-
-if django.VERSION < (1, 7):
-    # test migrations if South is available
-    try:
-        import south  # noqa: F401
-        if 'south' not in INSTALLED_APPS:
-            INSTALLED_APPS += ['south']
-    except ImportError:
-        pass
-    else:
-        del south
-del django

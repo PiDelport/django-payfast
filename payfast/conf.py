@@ -1,17 +1,25 @@
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
+
+if hasattr(settings, 'PAYFAST_URL_BASE'):
+    URL_BASE = settings.PAYFAST_URL_BASE
+else:
+    raise ImproperlyConfigured(
+        'Please configure settings.PAYFAST_URL_BASE with the base URL of your site'
+        ' (as a string, or a callable returning a string)')
 
 TEST_MODE = getattr(settings, 'PAYFAST_TEST_MODE', False)
 
 TEST_MERCHANT_ID = '10000100'
 TEST_MERCHANT_KEY = '46f0cd694581a'
 
-MERCHANT_ID = getattr(settings, 'PAYFAST_MERCHANT_ID', TEST_MERCHANT_ID)
-MERCHANT_KEY = getattr(settings, 'PAYFAST_MERCHANT_KEY', TEST_MERCHANT_KEY)
-
 if TEST_MODE:
     # real id and key don't work in sandbox
     MERCHANT_ID = TEST_MERCHANT_ID
     MERCHANT_KEY = TEST_MERCHANT_KEY
+else:
+    MERCHANT_ID = getattr(settings, 'PAYFAST_MERCHANT_ID')
+    MERCHANT_KEY = getattr(settings, 'PAYFAST_MERCHANT_KEY')
 
 LIVE_SERVER = 'https://www.payfast.co.za'
 SANDBOX_SERVER = 'https://sandbox.payfast.co.za'

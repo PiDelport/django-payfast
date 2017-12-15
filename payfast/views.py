@@ -1,4 +1,4 @@
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
@@ -15,8 +15,8 @@ def notify_handler(request):
     On successful access 'payfast.signals.notify' signal is sent.
     Orders should be processed in signal handler.
     """
-    id = request.POST.get('m_payment_id', None)
-    order = get_object_or_404(PayFastOrder, pk=id)
+    m_payment_id = request.POST.get('m_payment_id', None)
+    order = get_object_or_404(PayFastOrder, m_payment_id=m_payment_id)
 
     form = NotifyForm(request, request.POST, instance=order)
     if not form.is_valid():
@@ -25,7 +25,12 @@ def notify_handler(request):
         order.debug_info = errors
         order.trusted = False
         order.save()
-        raise Http404
+
+        # XXX: Any possible data leakage here?
+        return HttpResponseBadRequest(
+            content_type='application/json',
+            content=form.errors.as_json(),
+        )
 
     order = form.save()
     signals.notify.send(sender=notify_handler, order=order)

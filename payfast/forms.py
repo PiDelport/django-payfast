@@ -1,9 +1,10 @@
 from collections import OrderedDict
 
+from six.moves.urllib_parse import urljoin
+
 import django
 from django import forms
 from django.conf import settings
-from django.contrib.sites.models import Site
 
 from payfast.models import PayFastOrder
 from payfast.api import signature, data_is_valid
@@ -17,11 +18,14 @@ else:
 
 
 def full_url(link):
-    current_site = Site.objects.get_current()
-    url = current_site.domain + link
-    if not url.startswith('http'):
-        url = 'http://' + url
-    return url
+    """
+    Return an absolute version of a possibly-relative URL.
+
+    This uses the PAYFAST_URL_BASE setting.
+    """
+    url_base = (conf.URL_BASE() if callable(conf.URL_BASE) else
+                conf.URL_BASE)
+    return urljoin(url_base, link)
 
 
 def notify_url():
@@ -45,6 +49,9 @@ class PayFastForm(HiddenForm):
     'user' parameter: it is the User instance the order is purchased by. If
     'user' is specified, 'name_first', 'name_last' and 'email_address' fields
     will be filled automatically if they are not passed with 'initial'.
+
+    If `m_payment_id` is specified, it will uniquely identify the PayFastOrder.
+    Otherwise, a new PayFastOrder will be created for each form instantiation.
     """
 
     target = conf.PROCESS_URL
@@ -100,18 +107,44 @@ class PayFastForm(HiddenForm):
 
         super(PayFastForm, self).__init__(*args, **kwargs)
 
-        # new order reference number is issued each time form is instantiated
-        self.order = PayFastOrder.objects.create(
-            user=user,
-            amount_gross=self.initial['amount'],
-        )
+        if 'm_payment_id' in self.initial:
+            # If the caller supplies m_payment_id, find the existing order, or create it.
+            (self.order, created) = PayFastOrder.objects.get_or_create(
+                m_payment_id=self.initial['m_payment_id'],
+                defaults=dict(
+                    user=user,
+                    amount_gross=self.initial['amount'],
+                ),
+            )
+            if not created:
+                # If the order is existing, check the user and amount fields,
+                # and update if necessary.
+                #
+                # XXX: Also consistency-check that the order is not paid yet?
+                #
+                if not (self.order.user == user and
+                        self.order.amount_gross == self.initial['amount']):
+                    self.order.user = user
+                    self.order.amount_gross = self.initial['amount']
+                    self.order.save()
+        else:
+            # Old path: Create a new PayFastOrder each time form is instantiated.
+            self.order = PayFastOrder.objects.create(
+                user=user,
+                amount_gross=self.initial['amount'],
+            )
 
-        self.initial['m_payment_id'] = self.order.pk
+            # Initialise m_payment_id from the pk.
+            self.order.m_payment_id = str(self.order.pk)
+            self.order.save()
+
+            self.initial['m_payment_id'] = self.order.m_payment_id
 
         # we need self.initial but it is unordered
         data = OrderedDict(
-            (key, self.initial.get(key, None))
+            (key, self.initial[key])
             for key in self.fields.keys()
+            if key in self.initial
         )
         self._signature = self.fields['signature'].initial = signature(data)
 
@@ -129,17 +162,11 @@ class NotifyForm(forms.ModelForm):
         if self.ip not in conf.IP_ADDRESSES:
             raise forms.ValidationError('untrusted ip: %s' % self.ip)
 
-#        # signature is checked here because cleaned_data is not yet populated
-#        # when clean_signature method is invoked
-#        data = OrderedDict()
-#        for key in self.fields.keys():
-#            if key == 'signature':
-#                continue
-#            data[key] = self.cleaned_data.get(key, None)
-#
-#        if signature(data) != self.cleaned_data['signature']:
-#            raise forms.ValidationError('Signature is invalid: %s != %s' % (
-#                        signature(data), self.cleaned_data['signature'],))
+        # Verify signature
+        sig = self._calculate_itn_signature(self.data)
+        if sig != self.cleaned_data['signature']:
+            raise forms.ValidationError('Signature is invalid: %s != %s' % (
+                sig, self.cleaned_data['signature'],))
 
         if conf.USE_POSTBACK:
             is_valid = data_is_valid(self.request.POST, conf.SERVER)
@@ -174,10 +201,24 @@ class NotifyForm(forms.ModelForm):
                          self.request.encoding)
         body_str = body_bytes.decode(body_encoding)  # type: str
 
-        self.instance.debug_info = body_str
+        self.instance.debug_info = body_str[:255]
 
         self.instance.trusted = True
         return super(NotifyForm, self).save(*args, **kwargs)
+
+    @classmethod
+    def _calculate_itn_signature(cls, data):
+        """
+        Calculate the PayFast ITN signature of the given data.
+
+        This orders the keys as per the ITN documentation.
+        """
+        data = OrderedDict(
+            (key, data[key])
+            for key in cls.base_fields.keys()
+            if key in data and key != 'signature'
+        )
+        return signature(data)
 
     def plain_errors(self):
         ''' plain error list (without the html) '''

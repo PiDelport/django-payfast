@@ -19,7 +19,8 @@ POSTBACK_SERVER = 'https://www.payfast.co.za'
 def _values_to_encode(data):
     return [
         (k, str(data[k]).strip().encode('utf8'))
-        for k in data if data[k] and k != 'signature'
+        for k in data
+        if k != 'signature'
     ]
 
 
@@ -48,11 +49,15 @@ def data_is_valid(post_data, postback_server=POSTBACK_SERVER):
 
     postback_url = postback_server.rstrip('/') + POSTBACK_URL
     try:
-        response = urlopen(postback_url, data=post_bytes).read()
+        response = urlopen(postback_url, data=post_bytes)
+        result = response.read().decode('utf-8')  # XXX: Assumed encoding
     except HTTPError:
-        return None
-    if response == 'VALID':
+        # XXX: Just re-raise for now.
+        raise
+
+    if result == 'VALID':
         return True
-    if response == 'INVALID':
+    elif result == 'INVALID':
         return False
-    return None
+    else:
+        raise NotImplementedError('Unexpected result from PayFast validation: {!r}'.format(result))
