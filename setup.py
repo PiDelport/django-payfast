@@ -1,10 +1,14 @@
 #!/usr/bin/env python
+import sys
 from setuptools import setup, find_packages
 
 
 def README():
     with open('README.rst') as f:
         return f.read()
+
+
+_PYTHON_2_BACKPORTS = ['ipaddress'] if sys.version_info < (3,) else []
 
 
 setup(
@@ -22,7 +26,7 @@ setup(
     install_requires=[
         'six',
         'Django',
-    ],
+    ] + _PYTHON_2_BACKPORTS,
 
     url='https://github.com/pjdelport/django-payfast',
     license='MIT license',
@@ -35,7 +39,8 @@ setup(
         'Framework :: Django',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ),
 )

@@ -1,3 +1,4 @@
+import sys
 from collections import OrderedDict
 from ipaddress import ip_address, ip_network
 
@@ -162,6 +163,13 @@ def is_payfast_ip_address(ip_address_str):
     # TODO: Django system check for validity?
     payfast_ip_addresses = getattr(settings, 'PAYFAST_IP_ADDRESSES',
                                    conf.DEFAULT_PAYFAST_IP_ADDRESSES)
+
+    if sys.version_info < (3,):
+        # Python 2 usability: Coerce str to unicode, to avoid very common TypeErrors.
+        # (On Python 3, this should generally not happen:
+        #  let unexpected bytes values fail as expected.)
+        ip_address_str = unicode(ip_address_str)  # noqa: F821
+        payfast_ip_addresses = [unicode(address) for address in payfast_ip_addresses]  # noqa: F821
 
     return any(ip_address(ip_address_str) in ip_network(payfast_address)
                for payfast_address in payfast_ip_addresses)
