@@ -8,7 +8,7 @@ from collections import OrderedDict
 import django
 from django.test import TestCase
 
-from payfast.forms import notify_url, PayFastForm
+from payfast.forms import notify_url, PayFastForm, NotifyForm
 from payfast.models import PayFastOrder
 from payfast.api import signature
 from payfast import conf
@@ -35,7 +35,7 @@ def _notify_data(data, payment_form):
     notify_data['amount_gross'] = data['amount']
     del notify_data['amount']
     del notify_data['merchant_key']
-    notify_data['signature'] = signature(notify_data)
+    notify_data['signature'] = NotifyForm._calculate_itn_signature(notify_data)
     return notify_data
 
 
@@ -93,7 +93,7 @@ class NotifyTest(TestCase):
 
         # the server sends a notification
         response = self.client.post(notify_url(), notify_data)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(self.notify_handler_orders, [order])
 
         order = _order()
@@ -128,7 +128,9 @@ class NotifyTest(TestCase):
 
     def test_invalid_request(self):
         form = PayFastForm(initial={'amount': 100, 'item_name': 'foo'})
-        response = self.client.post(notify_url(), {'m_payment_id': form.order.m_payment_id})
+        notify_data = {'m_payment_id': form.order.m_payment_id}
+        notify_data['signature'] = NotifyForm._calculate_itn_signature(notify_data)
+        response = self.client.post(notify_url(), notify_data)
         expected_amount = ('100' if django.VERSION < (1, 8) else
                            '100.00' if django.VERSION < (2, 0) else
                            '100')

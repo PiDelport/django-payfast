@@ -161,17 +161,11 @@ class NotifyForm(forms.ModelForm):
         if self.ip not in conf.IP_ADDRESSES:
             raise forms.ValidationError('untrusted ip: %s' % self.ip)
 
-#        # signature is checked here because cleaned_data is not yet populated
-#        # when clean_signature method is invoked
-#        data = OrderedDict()
-#        for key in self.fields.keys():
-#            if key == 'signature':
-#                continue
-#            data[key] = self.cleaned_data.get(key, None)
-#
-#        if signature(data) != self.cleaned_data['signature']:
-#            raise forms.ValidationError('Signature is invalid: %s != %s' % (
-#                        signature(data), self.cleaned_data['signature'],))
+        # Verify signature
+        sig = self._calculate_itn_signature(self.data)
+        if sig != self.cleaned_data['signature']:
+            raise forms.ValidationError('Signature is invalid: %s != %s' % (
+                sig, self.cleaned_data['signature'],))
 
         if conf.USE_POSTBACK:
             is_valid = data_is_valid(self.request.POST, conf.SERVER)
@@ -210,6 +204,20 @@ class NotifyForm(forms.ModelForm):
 
         self.instance.trusted = True
         return super(NotifyForm, self).save(*args, **kwargs)
+
+    @classmethod
+    def _calculate_itn_signature(cls, data):
+        """
+        Calculate the PayFast ITN signature of the given data.
+
+        This orders the keys as per the ITN documentation.
+        """
+        data = OrderedDict(
+            (key, data[key])
+            for key in cls.base_fields.keys()
+            if key in data and key != 'signature'
+        )
+        return signature(data)
 
     def plain_errors(self):
         ''' plain error list (without the html) '''

@@ -19,7 +19,8 @@ POSTBACK_SERVER = 'https://www.payfast.co.za'
 def _values_to_encode(data):
     return [
         (k, str(data[k]).strip().encode('utf8'))
-        for k in data if data[k] and k != 'signature'
+        for k in data
+        if k != 'signature'
     ]
 
 
