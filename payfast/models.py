@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import six
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.utils.encoding import python_2_unicode_compatible
 
 from payfast import readable_models
@@ -55,7 +55,7 @@ class PayFastOrder(six.with_metaclass(readable_models.ModelBase, models.Model)):
     request_ip = models.GenericIPAddressField(null=True, blank=True)
     debug_info = models.CharField(max_length=255, null=True, blank=True)
     trusted = models.NullBooleanField(default=None)
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE)
 
     class HelpText:
         m_payment_id = "Unique transaction ID on the receiver's system."
