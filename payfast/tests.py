@@ -49,6 +49,16 @@ class SignatureTest(unittest.TestCase):
         data = _test_data()
         self.assertEqual(signature(data), '481366608545707be67c6514386b3fb1')
 
+    def test_signature_blank_fields(self):
+        """
+        Fields with blank values should not be included in the signature.
+        """
+        data = _test_data()
+        data['name_first'] = ''
+        self.assertEqual(signature(data), '6551205f0fee13cf09174b0b887ec5b3')
+        data['name_last'] = ''
+        self.assertEqual(signature(data), '8f6435965cd9b00a9a965d93fc6c4c48')
+
 
 @override_settings(PAYFAST_IP_ADDRESSES=['127.0.0.1'])
 class NotifyTest(TestCase):
