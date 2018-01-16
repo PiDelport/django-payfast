@@ -22,7 +22,7 @@ def _test_data():
         ('merchant_key', '46f0cd694581a'),
         ('notify_url', "http://127.0.0.1:8000/payfast/notify/"),
         ('name_first', "Вася"),
-        ('last_name', 'Пупников'),
+        ('name_last', 'Пупников'),
         ('m_payment_id', '23'),
         ('amount', '234'),
         ('item_name', "Payment (Планета суши). ID:272-15"),
@@ -47,7 +47,7 @@ def _order():
 class SignatureTest(unittest.TestCase):
     def test_signature(self):
         data = _test_data()
-        self.assertEqual(signature(data), 'c71d41dd5041bf28d819fe102ab0106b')
+        self.assertEqual(signature(data), '481366608545707be67c6514386b3fb1')
 
 
 @override_settings(PAYFAST_IP_ADDRESSES=['127.0.0.1'])
