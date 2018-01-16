@@ -143,6 +143,7 @@ class PayFastForm(HiddenForm):
             self.initial['m_payment_id'] = self.order.m_payment_id
 
         # we need self.initial but it is unordered
+        # TODO: Handle field ordering as part of signature()
         data = OrderedDict(
             (key, self.initial[key])
             for key in self.fields.keys()

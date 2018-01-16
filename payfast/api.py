@@ -18,9 +18,9 @@ POSTBACK_SERVER = 'https://www.payfast.co.za'
 
 def _values_to_encode(data):
     return [
-        (k, str(data[k]).strip().encode('utf8'))
-        for k in data
-        if k != 'signature'
+        (k, str(value).strip().encode('utf8'))
+        for (k, value) in data.items()
+        if k != 'signature' and value
     ]
 
 
@@ -29,6 +29,7 @@ def _signature_string(data):
     return urlencode(values)
 
 
+# TODO: Handle field ordering as part of signature()
 def signature(data):
     """
     Calculates PayFast signature.
