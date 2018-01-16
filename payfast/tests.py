@@ -45,6 +45,8 @@ def _order():
 
 
 class SignatureTest(unittest.TestCase):
+    # TODO: This needs better coverage.
+
     def test_signature(self):
         data = _test_data()
         self.assertEqual(signature(data), '481366608545707be67c6514386b3fb1')
