@@ -29,6 +29,7 @@ def _signature_string(data):
     return urlencode(values)
 
 
+# TODO: Handle field ordering as part of signature()
 def signature(data):
     """
     Calculates PayFast signature.
