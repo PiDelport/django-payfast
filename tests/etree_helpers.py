@@ -1,5 +1,5 @@
 """
-Supporting helpers for the test code.
+Test helpers: ElementTree parsing.
 """
 from typing import Union, Optional
 from xml.etree.ElementTree import Element, ElementTree

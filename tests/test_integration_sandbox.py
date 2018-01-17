@@ -103,7 +103,7 @@ def test_process_empty():
 
 def do_complete_payment(data: Dict[str, str]) -> None:
     """
-    A minimal process + payment flow.
+    A minimal payment request + completion flow.
     """
     # Values for result assertions:
     amount = '{:.2f}'.format(Decimal(data['amount']))
