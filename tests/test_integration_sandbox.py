@@ -7,6 +7,7 @@ from xml.etree.ElementTree import ElementTree  # noqa: F401
 
 import html5lib
 import requests
+from decimal import Decimal
 
 from etree_helpers import text_collapsed, text_lines, find_id_maybe, find_id
 
@@ -100,24 +101,28 @@ def test_process_empty():
     } == parse_payfast_page(response)
 
 
-def test_minimal_successful_payment():
+def do_complete_payment(data: Dict[str, str]) -> None:
     """
     A minimal process + payment flow.
     """
-    process_data = {}
-    process_data.update(sandbox_merchant_credentials)
-    process_data.update({
-        'amount': '123',
-        'item_name': 'Flux capacitor',
-    })
+    # Values for result assertions:
+    amount = '{:.2f}'.format(Decimal(data['amount']))
+    item_name = data['item_name']
+    expected_payment_summary = (
+        '{} Payment total R {} ZAR'.format(item_name, amount)
+    )
 
     # Step 1: Request payment.
+    process_data = {}
+    process_data.update(sandbox_merchant_credentials)
+    process_data.update(data)
+
     response1 = sandbox_process_post(process_data)
     parsed1 = parse_payfast_page(response1)
     assert {
         'session_type': 'p-sb',
         'session_id': parsed1['session_id'],
-        'payment_summary': 'Flux capacitor Payment total R 123.00 ZAR',
+        'payment_summary': expected_payment_summary,
         'payment_method': '1',
         'pay_button': 'Complete Payment',
     } == parsed1
@@ -130,6 +135,16 @@ def test_minimal_successful_payment():
     )
     parsed2 = parse_payfast_page(response2)
     assert {
-        'payment_summary': 'Flux capacitor Payment total R 123.00 ZAR',
+        'payment_summary': expected_payment_summary,
         'notice': 'Your payment was successful\n'
     } == parsed2
+
+
+def test_minimal_successful_payment():
+    """
+    A minimal process + payment flow.
+    """
+    do_complete_payment({
+        'amount': '123',
+        'item_name': 'Flux capacitor',
+    })
