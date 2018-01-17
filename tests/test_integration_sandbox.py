@@ -1,15 +1,20 @@
 """
 Integration tests against the PayFast sandbox environment.
 """
+import os
+from decimal import Decimal
+from queue import Queue  # noqa: F401
 from textwrap import dedent
 from typing import Dict, Iterable, Tuple
 from xml.etree.ElementTree import ElementTree  # noqa: F401
 
 import html5lib
 import requests
-from decimal import Decimal
+
+import pytest
 
 from etree_helpers import text_collapsed, text_lines, find_id_maybe, find_id
+from itn_helpers import itn_handler
 
 
 # PayFast sandbox details
@@ -148,3 +153,62 @@ def test_minimal_successful_payment():
         'amount': '123',
         'item_name': 'Flux capacitor',
     })
+
+
+# Check for ITN testing configuration:
+try:
+    ITN_HOST = os.environ['ITN_HOST']
+    ITN_PORT = int(os.environ['ITN_PORT'])
+    ITN_URL = os.environ['ITN_URL']
+except KeyError:
+    itn_configured = False
+else:
+    itn_configured = True
+
+
+@pytest.mark.skipif(not itn_configured, reason="""\
+Configure the following environment variables to test ITN:
+    ITN_HOST: The local host to listen on
+    ITN_PORT: The local port to listen on
+    ITN_URL: The notify_url to pass to PayFast
+""")
+def test_minimal_payment_itn():
+    """
+    A minimal payment with ITN.
+    """
+    data = {
+        'amount': '123',
+        'item_name': 'Flux capacitor',
+        # Enable ITN:
+        'notify_url': ITN_URL,
+    }
+    with itn_handler(ITN_HOST, ITN_PORT) as itn_queue:  # type: Queue
+        do_complete_payment(data)
+        itn_data = itn_queue.get(timeout=2)
+
+    assert {
+        'm_payment_id': '',
+        'pf_payment_id': itn_data['pf_payment_id'],
+        'payment_status': 'COMPLETE',
+        'item_name': 'Flux capacitor',
+        'item_description': '',
+        'amount_gross': '123.00',
+        'amount_fee': '-2.80',
+        'amount_net': '120.20',
+        'custom_str1': '',
+        'custom_str2': '',
+        'custom_str3': '',
+        'custom_str4': '',
+        'custom_str5': '',
+        'custom_int1': '',
+        'custom_int2': '',
+        'custom_int3': '',
+        'custom_int4': '',
+        'custom_int5': '',
+        'name_first': 'Test',
+        'name_last': 'User 01',
+        'email_address': 'sbtu01@payfast.co.za',
+        'merchant_id': '10000100',
+        'signature': itn_data['signature'],
+    } == itn_data
+    # TODO: Verify ITN signature.
