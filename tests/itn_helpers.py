@@ -3,10 +3,11 @@ Test helpers: Transient ITN handler.
 """
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
+from email.header import Header  # noqa: F401
 from http import HTTPStatus
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from queue import Queue
-from typing import Dict, Iterator
+from typing import Dict, Iterator, Union  # noqa: F401
 from urllib.parse import parse_qs
 
 
@@ -30,8 +31,8 @@ class PayFastITNHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def read_request_body(self) -> str:
-        [content_length_str] = self.headers.get_all('Content-Length')
-        content_length = int(content_length_str)
+        [content_length_header] = self.headers.get_all('Content-Length')  # type: Union[str, Header]
+        content_length = int(str(content_length_header))
         content_bytes = self.rfile.read(content_length)
         content = content_bytes.decode('utf-8')  # XXX
         return content
