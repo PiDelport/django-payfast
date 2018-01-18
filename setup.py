@@ -26,6 +26,8 @@ setup(
     install_requires=[
         'six',
         'Django',
+
+        'typing; python_version<"3.5"',
     ] + _PYTHON_2_BACKPORTS,
 
     url='https://github.com/pjdelport/django-payfast',
