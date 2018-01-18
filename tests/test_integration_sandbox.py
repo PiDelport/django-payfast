@@ -126,7 +126,7 @@ def do_complete_payment(data):  # type: (Dict[str, str]) -> None
     parsed1 = parse_payfast_page(response1)
     assert {
         'session_type': 'p-sb',
-        'session_id': parsed1['session_id'],
+        'session_id': parsed1.get('session_id', 'MISSING'),
         'payment_summary': expected_payment_summary,
         'payment_method': '1',
         'pay_button': 'Complete Payment',
@@ -188,7 +188,7 @@ def test_minimal_payment_itn():  # type: () -> None
 
     assert {
         'm_payment_id': '',
-        'pf_payment_id': itn_data['pf_payment_id'],
+        'pf_payment_id': itn_data.get('pf_payment_id', 'MISSING'),
         'payment_status': 'COMPLETE',
         'item_name': 'Flux capacitor',
         'item_description': '',
