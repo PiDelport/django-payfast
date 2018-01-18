@@ -5,7 +5,7 @@ import os
 from decimal import Decimal
 from queue import Queue  # noqa: F401
 from textwrap import dedent
-from typing import Dict, Iterable, Tuple
+from typing import Dict, Iterable, Tuple  # noqa: F401
 from xml.etree.ElementTree import ElementTree  # noqa: F401
 
 import html5lib
@@ -25,7 +25,7 @@ sandbox_merchant_credentials = {
 }
 
 
-def sandbox_process_post(data: Dict[str, str]) -> requests.Response:
+def sandbox_process_post(data):  # type: (Dict[str, str]) -> requests.Response
     """
     Post data to the PayFast process endpoint.
     """
@@ -35,10 +35,10 @@ def sandbox_process_post(data: Dict[str, str]) -> requests.Response:
 
 
 def sandbox_payment_post(
-        session_type: str,
-        session_id: str,
-        selected_method: str,
-) -> requests.Response:
+        session_type,  # type: str
+        session_id,  # type: str
+        selected_method,  # type: str
+):  # type: (...) -> requests.Response
     """
     Post a PayFast payment confirmation.
     """
@@ -51,7 +51,7 @@ def sandbox_payment_post(
     return response
 
 
-def parse_payfast_page(response: requests.Response) -> Dict[str, str]:
+def parse_payfast_page(response):  # type: (requests.Response) -> Dict[str, str]
     """
     Scrape some data from a PayFast payment page response.
     """
@@ -59,7 +59,7 @@ def parse_payfast_page(response: requests.Response) -> Dict[str, str]:
     html = response.text
     doc = html5lib.parse(html)  # type: ElementTree
 
-    def _parse() -> Iterable[Tuple[str, str]]:
+    def _parse():  # type: () -> Iterable[Tuple[str, str]]
         # The session info:
         session_tracker = find_id(doc, 'session-tracker')
         for name in ['type', 'id']:
@@ -89,7 +89,7 @@ def parse_payfast_page(response: requests.Response) -> Dict[str, str]:
     return dict(_parse())
 
 
-def test_process_empty():
+def test_process_empty():  # type: () -> None
     """
     Submitting an empty payment request fails.
     """
@@ -106,7 +106,7 @@ def test_process_empty():
     } == parse_payfast_page(response)
 
 
-def do_complete_payment(data: Dict[str, str]) -> None:
+def do_complete_payment(data):  # type: (Dict[str, str]) -> None
     """
     A minimal payment request + completion flow.
     """
@@ -145,7 +145,7 @@ def do_complete_payment(data: Dict[str, str]) -> None:
     } == parsed2
 
 
-def test_minimal_successful_payment():
+def test_minimal_successful_payment():  # type: () -> None
     """
     A minimal process + payment flow.
     """
@@ -172,7 +172,7 @@ Configure the following environment variables to test ITN:
     ITN_PORT: The local port to listen on
     ITN_URL: The notify_url to pass to PayFast
 """)
-def test_minimal_payment_itn():
+def test_minimal_payment_itn():  # type: () -> None
     """
     A minimal payment with ITN.
     """

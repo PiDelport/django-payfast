@@ -1,11 +1,11 @@
 """
 Test helpers: ElementTree parsing.
 """
-from typing import Union, Optional
+from typing import Union, Optional  # noqa: F401
 from xml.etree.ElementTree import Element, ElementTree
 
 
-def text_collapsed(element: Element) -> str:
+def text_collapsed(element):  # type: (Element) -> str
     """
     Element's text with whitespace collapsed.
     """
@@ -13,7 +13,7 @@ def text_collapsed(element: Element) -> str:
     return ' '.join(s for s in chunks if s)
 
 
-def text_lines(element: Element) -> str:
+def text_lines(element):  # type: (Element) -> str
     """
     Element's text with lines preserved.
     """
@@ -33,7 +33,7 @@ def text_lines(element: Element) -> str:
 _Element = Union[ElementTree, Element]
 
 
-def find_id_maybe(base: _Element, id: str) -> Optional[Element]:
+def find_id_maybe(base, id):  # type: (_Element, str) -> Optional[Element]
     """
     Return the child element with the given id, or None.
     """
@@ -51,7 +51,7 @@ def find_id_maybe(base: _Element, id: str) -> Optional[Element]:
         )
 
 
-def find_id(base: _Element, id: str) -> Element:
+def find_id(base, id):  # type: (_Element, str) -> Element
     """
     Return the child element with the given id.
 
