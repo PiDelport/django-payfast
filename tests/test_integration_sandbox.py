@@ -10,6 +10,8 @@ from textwrap import dedent
 from typing import Dict, Iterable, Tuple  # noqa: F401
 from xml.etree.ElementTree import ElementTree  # noqa: F401
 
+from payfast import api
+
 import html5lib
 import requests
 
@@ -108,9 +110,9 @@ def test_process_empty():  # type: () -> None
     } == parse_payfast_page(response)
 
 
-def do_complete_payment(data):  # type: (Dict[str, str]) -> None
+def do_complete_payment(data, sign_checkout_process=True):  # type: (Dict[str, str], bool) -> None
     """
-    A minimal payment request + completion flow.
+    A payment request + completion flow.
     """
     # Values for result assertions:
     amount = '{:.2f}'.format(Decimal(data['amount']))
@@ -123,6 +125,10 @@ def do_complete_payment(data):  # type: (Dict[str, str]) -> None
     process_data = {}
     process_data.update(sandbox_merchant_credentials)
     process_data.update(data)
+
+    if sign_checkout_process:
+        assert 'signature' not in process_data, process_data
+        process_data['signature'] = api.checkout_signature(process_data)
 
     response1 = sandbox_process_post(process_data)
     parsed1 = parse_payfast_page(response1)
@@ -147,14 +153,26 @@ def do_complete_payment(data):  # type: (Dict[str, str]) -> None
     } == parsed2
 
 
-def test_minimal_successful_payment():  # type: () -> None
+def test_minimal_successful_payment_unsigned():  # type: () -> None
     """
     A minimal process + payment flow.
     """
-    do_complete_payment({
+    checkout_data = {
         'amount': '123',
         'item_name': 'Flux capacitor',
-    })
+    }
+    do_complete_payment(checkout_data, sign_checkout_process=False)
+
+
+def test_minimal_successful_payment_signed():  # type: () -> None
+    """
+    A minimal process + payment flow, with signature.
+    """
+    checkout_data = {
+        'amount': '123',
+        'item_name': 'Flux capacitor',
+    }
+    do_complete_payment(checkout_data, sign_checkout_process=True)
 
 
 # Check for ITN testing configuration:
@@ -178,17 +196,19 @@ def test_minimal_payment_itn():  # type: () -> None
     """
     A minimal payment with ITN.
     """
-    data = {
+    checkout_data = {
         'amount': '123',
         'item_name': 'Flux capacitor',
         # Enable ITN:
         'notify_url': ITN_URL,
     }
     with itn_handler(ITN_HOST, ITN_PORT) as itn_queue:  # type: Queue
-        do_complete_payment(data)
+        do_complete_payment(checkout_data)
         itn_data = itn_queue.get(timeout=2)
 
-    assert {
+    calculated_signature = api.itn_signature(itn_data)
+
+    assert itn_data == {
         'm_payment_id': '',
         'pf_payment_id': itn_data.get('pf_payment_id', 'MISSING'),
         'payment_status': 'COMPLETE',
@@ -211,6 +231,5 @@ def test_minimal_payment_itn():  # type: () -> None
         'name_last': 'User 01',
         'email_address': 'sbtu01@payfast.co.za',
         'merchant_id': '10000100',
-        'signature': itn_data['signature'],
-    } == itn_data
-    # TODO: Verify ITN signature.
+        'signature': calculated_signature,
+    }
