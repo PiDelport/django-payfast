@@ -1,6 +1,8 @@
 """
 This module can be used without django
 """
+from __future__ import unicode_literals
+
 from hashlib import md5
 
 # Python 2 compatibility:

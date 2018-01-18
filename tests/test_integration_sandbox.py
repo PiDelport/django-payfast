@@ -1,6 +1,8 @@
 """
 Integration tests against the PayFast sandbox environment.
 """
+from __future__ import unicode_literals
+
 import os
 from decimal import Decimal
 from queue import Queue  # noqa: F401

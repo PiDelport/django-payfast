@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import sys
 from collections import OrderedDict
 from ipaddress import ip_address, ip_network
