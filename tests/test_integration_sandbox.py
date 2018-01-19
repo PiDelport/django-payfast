@@ -3,8 +3,8 @@ Integration tests against the PayFast sandbox environment.
 """
 from __future__ import unicode_literals
 
+import decimal
 import os
-from decimal import Decimal
 from queue import Queue  # noqa: F401
 from textwrap import dedent
 from typing import Dict, Iterable, Tuple, Mapping  # noqa: F401
@@ -117,11 +117,16 @@ def do_complete_payment(
     """
     A payment request + completion flow.
     """
-    # Values for result assertions:
-    amount = '{:.2f}'.format(Decimal(data['amount']))
-    stripped_item_name = data['item_name'].strip()  # PayFast strips this for display.
+    # Expected values for result assertions:
+    try:
+        expected_amount = '{:.2f}'.format(decimal.Decimal(data['amount']))
+    except decimal.InvalidOperation:
+        # We may be testing a value that isn't Decimal-parseable;
+        # in that case, just expect it unmodified.
+        expected_amount = data['amount']
+    expected_item_name = data['item_name'].strip()  # PayFast strips this for display.
     expected_payment_summary = (
-        '{} Payment total R {} ZAR'.format(stripped_item_name, amount)
+        '{} Payment total R {} ZAR'.format(expected_item_name, expected_amount)
     )
 
     # Step 1: Request payment.
