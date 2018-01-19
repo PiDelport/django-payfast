@@ -11,7 +11,7 @@ import string
 import time
 from typing import Dict, Mapping, Callable, List  # noqa: F401
 
-from hypothesis import given, assume, settings
+from hypothesis import given, assume, settings, HealthCheck
 from hypothesis import strategies as st
 
 from test_integration_sandbox import (
@@ -157,10 +157,12 @@ def st_checkout_data(draw):  # type: (Callable) -> Mapping[str, str]
 @requires_itn_configured
 @settings(
     # Attempt a vaguely API-friendly configuration:
-    max_examples=10,
-    max_iterations=1,
-    max_shrinks=10,
-    deadline=5000,
+    # max_examples=10,
+    # max_iterations=1,
+    # max_shrinks=10,
+    deadline=10000,
+    timeout=60 * 60,  # 1 hour
+    suppress_health_check=[HealthCheck.hung_test],
 )
 @given(st_checkout_data())
 def test_complete_payment(checkout_data):  # type: (Mapping[str, str]) -> None
@@ -183,5 +185,5 @@ def test_complete_payment(checkout_data):  # type: (Mapping[str, str]) -> None
         print('XXX Got error:', e)
         raise
     finally:
-        # XXX: Hacky rate limiting: one second between requests.
-        time.sleep(1)
+        # XXX: Hacky rate limiting: sleep between requests.
+        time.sleep(5)  # seconds
