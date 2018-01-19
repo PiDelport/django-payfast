@@ -151,7 +151,7 @@ def _drop_non_signature_fields(
     return {
         k: v for (k, v) in data_fields.items()
         if k != 'signature'
-        if include_empty or v
+        if include_empty or (v and v != '0')  # XXX: Count '0' as empty.
     }
 
 

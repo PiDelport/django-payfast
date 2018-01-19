@@ -382,3 +382,34 @@ def test_item_name_nbsp():  # type: () -> None
         'item_name': '\N{NO-BREAK SPACE}',
     }
     do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
+
+
+@requires_itn_configured
+@pytest.mark.parametrize('partial_checkout_data', [
+    # item_description and custom_str* fields
+    # (The custom_int* fields do not seem to be affected.)
+    {'item_description': '0', 'custom_str1': ''},
+    # custom_str*
+    {'custom_str1': '0', 'custom_str2': ''},
+    # More:
+    {'m_payment_id': '', 'name_last': '0'},
+    # Names:
+    {'name_first': '', 'name_last': '0'},
+    # Non-weird:
+    {'custom_str1': '0'},
+    {'name_first': '0', 'name_last': '0'},
+])
+def test_empty_zero_field_weirdness(
+        partial_checkout_data,  # type: Mapping[str, str]
+):  # type: (...) -> None
+    """
+    Weird empty and '0' field value handling.
+
+    Signatures seem to behave weirdly with combinations of these.
+    """
+    checkout_data = {
+        'amount': '1',
+        'item_name': 'Flux capacitor',
+    }
+    checkout_data.update(partial_checkout_data)
+    do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
