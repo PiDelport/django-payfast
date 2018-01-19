@@ -7,7 +7,7 @@ import os
 from decimal import Decimal
 from queue import Queue  # noqa: F401
 from textwrap import dedent
-from typing import Dict, Iterable, Tuple  # noqa: F401
+from typing import Dict, Iterable, Tuple, Mapping  # noqa: F401
 from xml.etree.ElementTree import ElementTree  # noqa: F401
 
 from payfast import api
@@ -110,7 +110,10 @@ def test_process_empty():  # type: () -> None
     } == parse_payfast_page(response)
 
 
-def do_complete_payment(data, sign_checkout_process=True):  # type: (Dict[str, str], bool) -> None
+def do_complete_payment(
+        data,  # type: Mapping[str, str]
+        sign_checkout_process=True,  # type: bool
+):  # type: (...) -> None
     """
     A payment request + completion flow.
     """
