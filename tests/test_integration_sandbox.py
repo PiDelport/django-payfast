@@ -112,79 +112,6 @@ def test_process_empty():  # type: () -> None
     } == parse_payfast_page(response)
 
 
-def do_complete_payment(
-        data,  # type: Mapping[str, str]
-        sign_checkout_process=True,  # type: bool
-):  # type: (...) -> None
-    """
-    A payment request + completion flow.
-    """
-    # Expected values for result assertions:
-    try:
-        expected_amount = '{:.2f}'.format(decimal.Decimal(data['amount']))
-    except decimal.InvalidOperation:
-        # We may be testing a value that isn't Decimal-parseable;
-        # in that case, just expect it unmodified.
-        expected_amount = data['amount']
-    expected_item_name = data['item_name'].strip()  # PayFast strips this for display.
-    expected_payment_summary = (
-        '{} Payment total R {} ZAR'.format(expected_item_name, expected_amount)
-    )
-
-    # Step 1: Request payment.
-    process_data = {}
-    process_data.update(sandbox_merchant_credentials)
-    process_data.update(data)
-
-    if sign_checkout_process:
-        assert 'signature' not in process_data, process_data
-        process_data['signature'] = api.checkout_signature(process_data)
-
-    response1 = post_sandbox_checkout(process_data)
-    parsed1 = parse_payfast_page(response1)
-    assert {
-        'session_type': 'p-sb',
-        'session_id': parsed1.get('session_id', 'MISSING'),
-        'payment_summary': expected_payment_summary,
-        'payment_method': '1',
-        'pay_button': 'Complete Payment',
-    } == parsed1
-
-    # Step 2: Complete payment.
-    response2 = post_sandbox_payment(
-        parsed1['session_type'],
-        parsed1['session_id'],
-        parsed1['payment_method'],
-    )
-    parsed2 = parse_payfast_page(response2)
-    assert {
-        'payment_summary': expected_payment_summary,
-        'notice': 'Your payment was successful\n'
-    } == parsed2
-
-
-def test_minimal_successful_payment_unsigned():  # type: () -> None
-    """
-    A minimal process + payment flow.
-    """
-    checkout_data = {
-        'amount': '123',
-        'item_name': 'Flux capacitor',
-    }
-    do_complete_payment(checkout_data, sign_checkout_process=False)
-
-
-def test_minimal_successful_payment_signed():  # type: () -> None
-    """
-    A minimal process + payment flow, with signature.
-    """
-    checkout_data = {
-        'amount': '123',
-        'item_name': 'Flux capacitor',
-    }
-    do_complete_payment(checkout_data, sign_checkout_process=True)
-
-
 # Check for ITN testing configuration:
 try:
     ITN_HOST = os.environ['ITN_HOST']
@@ -196,13 +123,199 @@ else:
     itn_configured = True
 
 
-# Helper pytest mark for tests than need ITN handling configured.
-requires_itn_configured = pytest.mark.skipif(not itn_configured, reason="""\
+ITN_HELP_MESSAGE = """\
 Configure the following environment variables to test ITN:
     ITN_HOST: The local host to listen on
     ITN_PORT: The local port to listen on
     ITN_URL: The notify_url to pass to PayFast
-""")
+"""
+
+#: Helper pytest mark for tests than need ITN handling configured.
+requires_itn_configured = pytest.mark.skipif(not itn_configured, reason=ITN_HELP_MESSAGE)
+
+
+def require_itn_configured():  # type: () -> None
+    """
+    pytest.skip() if not itn_configured.
+    """
+    if not itn_configured:
+        pytest.skip(ITN_HELP_MESSAGE)
+
+
+def do_checkout(
+        checkout_data,  # type: Dict[str, str]
+        sign_checkout,  # type: bool
+):  # type: (...) -> Dict[str, str]
+    """
+    Common test helper: do a checkout, and assert results.
+
+    This takes unsigned checkout data, and will add a signature if `sign_checkout` is true.
+
+    Return the checkout page's parse.
+    """
+    # Expected values for result assertions:
+    try:
+        expected_amount = '{:.2f}'.format(decimal.Decimal(checkout_data['amount']))
+    except decimal.InvalidOperation:
+        # We may be testing a value that isn't Decimal-parseable;
+        # in that case, just expect it unmodified.
+        expected_amount = checkout_data['amount']
+    expected_item_name = checkout_data['item_name'].strip()  # PayFast strips this for display.
+    expected_payment_summary = (
+        '{} Payment total R {} ZAR'.format(expected_item_name, expected_amount)
+    )
+
+    if sign_checkout:
+        assert 'signature' not in checkout_data, checkout_data
+        checkout_data['signature'] = api.checkout_signature(checkout_data)
+
+    response = post_sandbox_checkout(checkout_data)
+    parsed = parse_payfast_page(response)
+    assert {
+        'session_type': 'p-sb',
+        'session_id': parsed.get('session_id', 'MISSING'),
+        'payment_summary': expected_payment_summary,
+        'payment_method': '1',
+        'pay_button': 'Complete Payment',
+    } == parsed
+
+    return parsed
+
+
+def do_payment(
+        checkout_data,  # Dict[str, str]
+        parsed_checkout,  # Dict[str, str]
+        enable_itn,  # type: bool
+):  # type: (...) -> Dict[str, str]
+    """
+    Common test helper: do a payment, and assert results.
+
+    This takes a checkout's data and page parse (for session info and assertions).
+    This will enable and verify ITN processing if `enable_itn` is true.
+
+    Return the payment confirmation page's parse.
+    """
+    def _post_payment():  # type: () -> requests.Response
+        return post_sandbox_payment(
+            parsed_checkout['session_type'],
+            parsed_checkout['session_id'],
+            parsed_checkout['payment_method'],
+        )
+
+    if enable_itn:
+        require_itn_configured()
+        with itn_handler(ITN_HOST, ITN_PORT) as itn_queue:  # type: Queue
+            response = _post_payment()
+            itn_data = itn_queue.get(timeout=2)
+    else:
+        response = _post_payment()
+
+    parsed_payment = parse_payfast_page(response)
+    assert {
+        'payment_summary': parsed_checkout['payment_summary'],
+        'notice': 'Your payment was successful\n'
+    } == parsed_payment
+
+    if enable_itn:
+        # Check the ITN result.
+
+        # Expect whitespace-stripped versions of the checkout data.
+        expected = {name: value.strip(api.CHECKOUT_SIGNATURE_IGNORED_WHITESPACE)
+                    for (name, value) in checkout_data.items()}
+
+        # Expected fees:
+        sandbox_fee_factor = decimal.Decimal('0.0228')
+        expected_amount_gross = decimal.Decimal(checkout_data['amount'].strip())
+        expected_amount_fee = expected_amount_gross * sandbox_fee_factor
+        expected_amount_net = expected_amount_gross - expected_amount_fee
+
+        expected_signature = api.itn_signature(itn_data)
+        assert {
+            'm_payment_id': expected.get('m_payment_id', ''),
+            'pf_payment_id': itn_data.get('pf_payment_id', 'MISSING'),
+            'payment_status': 'COMPLETE',
+            'item_name': expected.get('item_name', 'MISSING'),
+            'item_description': expected.get('item_description', ''),
+
+            'amount_gross': '{:.2f}'.format(expected_amount_gross),
+            'amount_fee': '{:.2f}'.format(-expected_amount_fee),  # Note: Represented negated here.
+            'amount_net': '{:.2f}'.format(expected_amount_net),
+
+            'custom_str1': expected.get('custom_str1', ''),
+            'custom_str2': expected.get('custom_str2', ''),
+            'custom_str3': expected.get('custom_str3', ''),
+            'custom_str4': expected.get('custom_str4', ''),
+            'custom_str5': expected.get('custom_str5', ''),
+            'custom_int1': expected.get('custom_int1', ''),
+            'custom_int2': expected.get('custom_int2', ''),
+            'custom_int3': expected.get('custom_int3', ''),
+            'custom_int4': expected.get('custom_int4', ''),
+            'custom_int5': expected.get('custom_int5', ''),
+
+            # The sandbox seems to fix these names, rather than using the checkout submission data.
+            'name_first': 'Test',
+            'name_last': 'User 01',
+
+            'email_address': expected.get('email_address', 'sbtu01@payfast.co.za'),
+            'merchant_id': '10000100',
+            'signature': expected_signature,
+        } == itn_data
+
+    return parsed_payment
+
+
+def do_complete_payment(
+        partial_checkout_data,  # type: Mapping[str, str]
+        sign_checkout,  # type: bool
+        enable_itn,  # type: bool
+):  # type: (...) -> None
+    """
+    Common test helper: A complete checkout + payment completion flow.
+
+    This takes a partial checkout data, and will add sandbox merchant credentials,
+
+     * Sandbox merchant credentials (if not supplied)
+     * notify_url (if enable_itn is true)
+    """
+    if enable_itn:
+        require_itn_configured()
+
+    # Step 1: Prepare the checkout data:
+    checkout_data = {}
+    checkout_data.update(sandbox_merchant_credentials)
+    checkout_data.update(partial_checkout_data)
+
+    if enable_itn:
+        assert 'notify_url' not in checkout_data, checkout_data
+        checkout_data['notify_url'] = ITN_URL
+
+    # Step 2: Checkout process.
+    parsed_checkout = do_checkout(checkout_data, sign_checkout=sign_checkout)
+
+    # Step 3: Complete payment.
+    do_payment(checkout_data, parsed_checkout, enable_itn=enable_itn)
+
+
+def test_minimal_successful_payment_unsigned():  # type: () -> None
+    """
+    A minimal process + payment flow.
+    """
+    checkout_data = {
+        'amount': '123',
+        'item_name': 'Flux capacitor',
+    }
+    do_complete_payment(checkout_data, sign_checkout=False, enable_itn=False)
+
+
+def test_minimal_successful_payment_signed():  # type: () -> None
+    """
+    A minimal process + payment flow, with signature.
+    """
+    checkout_data = {
+        'amount': '123',
+        'item_name': 'Flux capacitor',
+    }
+    do_complete_payment(checkout_data, sign_checkout=True, enable_itn=False)
 
 
 @requires_itn_configured
@@ -213,40 +326,8 @@ def test_minimal_payment_itn():  # type: () -> None
     checkout_data = {
         'amount': '123',
         'item_name': 'Flux capacitor',
-        # Enable ITN:
-        'notify_url': ITN_URL,
     }
-    with itn_handler(ITN_HOST, ITN_PORT) as itn_queue:  # type: Queue
-        do_complete_payment(checkout_data)
-        itn_data = itn_queue.get(timeout=2)
-
-    calculated_signature = api.itn_signature(itn_data)
-
-    assert itn_data == {
-        'm_payment_id': '',
-        'pf_payment_id': itn_data.get('pf_payment_id', 'MISSING'),
-        'payment_status': 'COMPLETE',
-        'item_name': 'Flux capacitor',
-        'item_description': '',
-        'amount_gross': '123.00',
-        'amount_fee': '-2.80',
-        'amount_net': '120.20',
-        'custom_str1': '',
-        'custom_str2': '',
-        'custom_str3': '',
-        'custom_str4': '',
-        'custom_str5': '',
-        'custom_int1': '',
-        'custom_int2': '',
-        'custom_int3': '',
-        'custom_int4': '',
-        'custom_int5': '',
-        'name_first': 'Test',
-        'name_last': 'User 01',
-        'email_address': 'sbtu01@payfast.co.za',
-        'merchant_id': '10000100',
-        'signature': calculated_signature,
-    }
+    do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
 
 
 @pytest.mark.parametrize(('leading', 'trailing'), [
@@ -291,4 +372,4 @@ def test_checkout_signature_ignored_whitespace(leading, trailing):  # type: (str
     for name in ['merchant_id', 'merchant_key', 'amount']:
         whitespaced_data[name] = whitespaced_data[name].strip('\N{NO-BREAK SPACE}')
 
-    do_complete_payment(whitespaced_data)
+    do_complete_payment(whitespaced_data, sign_checkout=True, enable_itn=True)
