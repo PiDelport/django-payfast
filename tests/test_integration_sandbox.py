@@ -225,14 +225,13 @@ def do_payment(
 
         # Expected fees:
         sandbox_fee_factor = decimal.Decimal('0.0228')
-        with decimal.localcontext() as ctx:  # type: decimal.Context
-            # Use floor rounding, and round to cents.
-            ctx.rounding = decimal.ROUND_FLOOR
-            cents = decimal.Decimal('0.00')
+        cents = decimal.Decimal('0.00')  # For rounding to cents
 
-            expected_amount_gross = decimal.Decimal(checkout_data['amount'].strip()).quantize(cents)
-            expected_amount_fee_positive = (expected_amount_gross * sandbox_fee_factor).quantize(cents)
-            expected_amount_net = (expected_amount_gross - expected_amount_fee_positive).quantize(cents)
+        expected_amount_gross = decimal.Decimal(checkout_data['amount'].strip()).quantize(cents)
+        # Round the fee to floor, not nearest.
+        expected_amount_fee = ((expected_amount_gross * sandbox_fee_factor)
+                               .quantize(cents, rounding=decimal.ROUND_FLOOR))
+        expected_amount_net = (expected_amount_gross - expected_amount_fee).quantize(cents)
 
         expected_signature = api.itn_signature(itn_data)
         assert {
@@ -244,7 +243,7 @@ def do_payment(
 
             'amount_gross': str(expected_amount_gross),
             # Payfast does not use negative zeroes: "+ 0" to coerce negative zeroes to positive.
-            'amount_fee': str(-expected_amount_fee_positive + 0),
+            'amount_fee': str(-expected_amount_fee + 0),
             'amount_net': str(expected_amount_net + 0),
 
             'custom_str1': expected.get('custom_str1', ''),
@@ -396,12 +395,23 @@ def test_amount_less_than_one_cent():  # type: () -> None
 
 
 @requires_itn_configured
-def test_fee_rounding_down():  # type: () -> None
+def test_fee_rounding_amount_nearest():  # type: () -> None
+    """
+    """
+    checkout_data = {
+        'amount': '0.995',  # This should be rounded up, not down.
+        'item_name': 'Flux capacitor',
+    }
+    do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
+
+
+@requires_itn_configured
+def test_fee_rounding_fee_floor():  # type: () -> None
     """
     The PayFast sandbox rounds fees down, not to nearest.
     """
     checkout_data = {
-        'amount': '0.66',  # This will result
+        'amount': '0.66',  # This will result in a fee that should be rounded down, not up.
         'item_name': 'Flux capacitor',
     }
     do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
