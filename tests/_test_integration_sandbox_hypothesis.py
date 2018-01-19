@@ -114,11 +114,11 @@ def st_checkout_data(draw):  # type: (Callable) -> Mapping[str, str]
         'custom_int3': st.text(alphabet=string.digits, max_size=255),
         'custom_int4': st.text(alphabet=string.digits, max_size=255),
         'custom_int5': st.text(alphabet=string.digits, max_size=255),
-        'custom_str1': valid_text(max_size=255),
-        'custom_str2': valid_text(max_size=255),
-        'custom_str3': valid_text(max_size=255),
-        'custom_str4': valid_text(max_size=255),
-        'custom_str5': valid_text(max_size=255),
+        'custom_str1': valid_text(max_utf8_size=255),
+        'custom_str2': valid_text(max_utf8_size=255),
+        'custom_str3': valid_text(max_utf8_size=255),
+        'custom_str4': valid_text(max_utf8_size=255),
+        'custom_str5': valid_text(max_utf8_size=255),
 
         # Transaction Options
         # 'email_confirmation',
