@@ -189,12 +189,16 @@ else:
     itn_configured = True
 
 
-@pytest.mark.skipif(not itn_configured, reason="""\
+# Helper pytest mark for tests than need ITN handling configured.
+requires_itn_configured = pytest.mark.skipif(not itn_configured, reason="""\
 Configure the following environment variables to test ITN:
     ITN_HOST: The local host to listen on
     ITN_PORT: The local port to listen on
     ITN_URL: The notify_url to pass to PayFast
 """)
+
+
+@requires_itn_configured
 def test_minimal_payment_itn():  # type: () -> None
     """
     A minimal payment with ITN.
