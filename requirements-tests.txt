@@ -1,0 +1,4 @@
+html5lib
+hypothesis
+pytest
+requests

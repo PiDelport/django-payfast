@@ -1,16 +1,18 @@
+from __future__ import unicode_literals
+
 import sys
-from collections import OrderedDict
 from ipaddress import ip_address, ip_network
 
+from six import text_type as str
 from six.moves.urllib_parse import urljoin
 
 import django
 from django import forms
 from django.conf import settings
 
-from payfast.models import PayFastOrder
-from payfast.api import signature, data_is_valid
+from payfast import api
 from payfast import conf
+from payfast.models import PayFastOrder
 
 # Django 1.10 introduces django.urls
 if django.VERSION < (1, 10):
@@ -70,6 +72,7 @@ class PayFastForm(HiddenForm):
     name_first = forms.CharField()
     name_last = forms.CharField()
     email_address = forms.CharField()
+    # TODO: cell_number
 
     # Transaction Details
     m_payment_id = forms.CharField()
@@ -142,14 +145,9 @@ class PayFastForm(HiddenForm):
 
             self.initial['m_payment_id'] = self.order.m_payment_id
 
-        # we need self.initial but it is unordered
-        # TODO: Handle field ordering as part of signature()
-        data = OrderedDict(
-            (key, self.initial[key])
-            for key in self.fields.keys()
-            if key in self.initial
-        )
-        self._signature = self.fields['signature'].initial = signature(data)
+        # Coerce values to strings, for signing.
+        data = {k: str(v) for (k, v) in self.initial.items()}
+        self._signature = self.fields['signature'].initial = api.checkout_signature(data)
 
 
 def is_payfast_ip_address(ip_address_str):
@@ -190,13 +188,13 @@ class NotifyForm(forms.ModelForm):
             raise forms.ValidationError('untrusted ip: %s' % self.ip)
 
         # Verify signature
-        sig = self._calculate_itn_signature(self.data)
+        sig = api.itn_signature(self.data)
         if sig != self.cleaned_data['signature']:
             raise forms.ValidationError('Signature is invalid: %s != %s' % (
                 sig, self.cleaned_data['signature'],))
 
         if conf.USE_POSTBACK:
-            is_valid = data_is_valid(self.request.POST, conf.SERVER)
+            is_valid = api.data_is_valid(self.request.POST, conf.SERVER)
             if is_valid is None:
                 raise forms.ValidationError('Postback fails')
             if not is_valid:
@@ -232,20 +230,6 @@ class NotifyForm(forms.ModelForm):
 
         self.instance.trusted = True
         return super(NotifyForm, self).save(*args, **kwargs)
-
-    @classmethod
-    def _calculate_itn_signature(cls, data):
-        """
-        Calculate the PayFast ITN signature of the given data.
-
-        This orders the keys as per the ITN documentation.
-        """
-        data = OrderedDict(
-            (key, data[key])
-            for key in cls.base_fields.keys()
-            if key in data and key != 'signature'
-        )
-        return signature(data)
 
     def plain_errors(self):
         ''' plain error list (without the html) '''

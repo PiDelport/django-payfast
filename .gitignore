@@ -15,6 +15,9 @@ dist/
 # pytest cache directory
 .cache/
 
+# Hypothesis database
+.hypothesis/
+
 # Coverage reports
 .coverage
 htmlcov/

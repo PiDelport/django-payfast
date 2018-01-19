@@ -26,8 +26,6 @@ matrix:
 #
 before_script:
   - pip install tox
-  - pip install flake8
 
 script:
   - tox
-  - flake8
