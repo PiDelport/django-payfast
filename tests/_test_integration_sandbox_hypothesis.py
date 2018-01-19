@@ -82,7 +82,7 @@ def st_checkout_data(draw):  # type: (Callable) -> Mapping[str, str]
     checkout_data = dict(sandbox_merchant_credentials)
     checkout_data.update({
         'amount': draw(st_amount),
-        'item_name': draw(valid_text(min_size=1, max_utf8_size=255)),
+        'item_name': draw(valid_text(min_size=1, max_utf8_size=100)),
     })
 
     # The m_payment_id field has a specific limited character repertoire.
