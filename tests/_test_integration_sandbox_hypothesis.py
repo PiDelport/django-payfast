@@ -34,14 +34,32 @@ def valid_text(
         min_size=None,  # type: int
         average_size=None,  # type: int
         max_size=None,  # type: int
+        max_utf8_size=None,  # type: int
 ):  # type: (...) -> st.S
     """
     Helper strategy for valid PayFast field value strings.
+
+    :param max_utf8_size:
+        If given, limit values to a maximum UTF-8 encoding size (in bytes).
+
+        This is needed because PayFast's field size limits actually seem to apply to
+        the UTF-8 encoded representation, not to the number of Unicode characters.
     """
-    return (st.text(min_size=min_size, average_size=average_size, max_size=max_size)
-            # PayFast seems to categorically refuse (with a low-level HTTP 403 Forbidden)
-            # requests with values that contain nulls, so avoid generating these.
-            .filter(lambda s: '\0' not in s))
+    # max_utf8_size generally implies max_size.
+    if max_utf8_size is not None and max_size is None:
+        max_size = max_utf8_size
+
+    _valid_texts = (
+        st.text(min_size=min_size, average_size=average_size, max_size=max_size)
+        # PayFast seems to categorically refuse (with a low-level HTTP 403 Forbidden)
+        # requests with values that contain nulls, so avoid generating these.
+        .filter(lambda s: '\0' not in s)
+    )
+
+    if max_utf8_size is not None:
+        _valid_texts = _valid_texts.filter(lambda s: len(s.encode('utf-8')) <= max_utf8_size)
+
+    return _valid_texts
 
 
 @st.composite
@@ -90,7 +108,7 @@ def st_checkout_data(draw):  # type: (Callable) -> Mapping[str, str]
         'm_payment_id': st.text(alphabet=m_payment_id_alphabet, max_size=100),
         # Already required: 'amount',
         # Already required: 'item_name',
-        'item_description': valid_text(max_size=255),
+        'item_description': valid_text(max_utf8_size=255),
         'custom_int1': st.text(alphabet=string.digits, max_size=255),
         'custom_int2': st.text(alphabet=string.digits, max_size=255),
         'custom_int3': st.text(alphabet=string.digits, max_size=255),
