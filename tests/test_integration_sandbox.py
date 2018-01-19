@@ -256,7 +256,7 @@ def test_minimal_payment_itn():  # type: () -> None
     ('\t', '\t'),
     ('\n', '\n'),
     ('\r', '\r'),
-    ('\N{LINE TABULATION}', '\N{LINE TABULATION}'),  # '\x0b'
+    ('\x0b', '\x0b'),  # \N{LINE TABULATION} (Python 2 does not know this Unicode character name)
 
     # XXX: PayFast seems to refuse null-containing values, so we can't test their signatures.
     # ('\0', '\0'),

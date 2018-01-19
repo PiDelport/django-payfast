@@ -184,7 +184,7 @@ CHECKOUT_SIGNATURE_IGNORED_WHITESPACE = ''.join([
     '\t',
     '\n',
     '\r',
-    '\N{LINE TABULATION}',  # '\xa0'
+    '\x0b',  # \N{LINE TABULATION} (Python 2 does not know this Unicode character name)
 
     # XXX: trim() strips '\0', but it's not clear whether to actually strip it here.
     # We can't really test it, since the endpoint seems to refuse any requests with null values.
