@@ -163,6 +163,7 @@ def do_checkout(
     expected_item_name = checkout_data['item_name'].strip()  # PayFast strips this for display.
     expected_payment_summary = (
         '{} Payment total R {} ZAR'.format(expected_item_name, expected_amount)
+        .strip()  # Strip to handle item names that render empty.
     )
 
     if sign_checkout:
@@ -369,3 +370,15 @@ def test_checkout_signature_ignored_whitespace(leading, trailing):  # type: (str
         whitespaced_data[name] = whitespaced_data[name].strip('\N{NO-BREAK SPACE}')
 
     do_complete_payment(whitespaced_data, sign_checkout=True, enable_itn=True)
+
+
+@requires_itn_configured
+def test_item_name_nbsp():  # type: () -> None
+    """
+    NBSP is a valid item name.
+    """
+    checkout_data = {
+        'amount': '123',
+        'item_name': '\N{NO-BREAK SPACE}',
+    }
+    do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
