@@ -225,15 +225,14 @@ def do_payment(
 
         # Expected fees:
         sandbox_fee_factor = decimal.Decimal('0.0228')
-        expected_amount_gross = decimal.Decimal(checkout_data['amount'].strip())
-        expected_amount_fee_positive = expected_amount_gross * sandbox_fee_factor
-        expected_amount_net = expected_amount_gross - expected_amount_fee_positive
-        # XXX: PayFast renders the fee as negative, *unless* it rounded to zero cents;
-        # in that case, it's rendered as a positive '0.00', rather than '-0.00' (per Decimal).
-        # The following quantize and "+ 0" gets rid of any negative zero sign on the rounded fee.
-        expected_amount_fee_negative = ((-expected_amount_fee_positive)
-                                        .quantize(decimal.Decimal('0.00'))
-                                        + 0)
+        with decimal.localcontext() as ctx:  # type: decimal.Context
+            # Use floor rounding, and round to cents.
+            ctx.rounding = decimal.ROUND_FLOOR
+            cents = decimal.Decimal('0.00')
+
+            expected_amount_gross = decimal.Decimal(checkout_data['amount'].strip()).quantize(cents)
+            expected_amount_fee_positive = (expected_amount_gross * sandbox_fee_factor).quantize(cents)
+            expected_amount_net = (expected_amount_gross - expected_amount_fee_positive).quantize(cents)
 
         expected_signature = api.itn_signature(itn_data)
         assert {
@@ -243,9 +242,10 @@ def do_payment(
             'item_name': expected.get('item_name', 'MISSING'),
             'item_description': expected.get('item_description', ''),
 
-            'amount_gross': '{:.2f}'.format(expected_amount_gross),
-            'amount_fee': '{:.2f}'.format(expected_amount_fee_negative),
-            'amount_net': '{:.2f}'.format(expected_amount_net),
+            'amount_gross': str(expected_amount_gross),
+            # Payfast does not use negative zeroes: "+ 0" to coerce negative zeroes to positive.
+            'amount_fee': str(-expected_amount_fee_positive + 0),
+            'amount_net': str(expected_amount_net + 0),
 
             'custom_str1': expected.get('custom_str1', ''),
             'custom_str2': expected.get('custom_str2', ''),
@@ -390,6 +390,18 @@ def test_amount_less_than_one_cent():  # type: () -> None
     """
     checkout_data = {
         'amount': '0.001',
+        'item_name': 'Flux capacitor',
+    }
+    do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
+
+
+@requires_itn_configured
+def test_fee_rounding_down():  # type: () -> None
+    """
+    The PayFast sandbox rounds fees down, not to nearest.
+    """
+    checkout_data = {
+        'amount': '0.66',  # This will result
         'item_name': 'Flux capacitor',
     }
     do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
