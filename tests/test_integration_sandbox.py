@@ -29,26 +29,28 @@ sandbox_merchant_credentials = {
 }
 
 
-def sandbox_process_post(data):  # type: (Dict[str, str]) -> requests.Response
+def post_sandbox_checkout(checkout_data):  # type: (Dict[str, str]) -> requests.Response
     """
-    Post data to the PayFast process endpoint.
+    Post data to the PayFast sandbox checkout process endpoint.
     """
-    response = requests.post(sandbox_process_url, data)
+    response = requests.post(sandbox_process_url, checkout_data)
     response.raise_for_status()
     return response
 
 
-def sandbox_payment_post(
+def post_sandbox_payment(
         session_type,  # type: str
         session_id,  # type: str
         selected_method,  # type: str
 ):  # type: (...) -> requests.Response
     """
-    Post a PayFast payment confirmation.
+    Post a PayFast sandbox wallet payment confirmation.
+
+    The parameters should come from the checkout page.
     """
-    # Referenced from:
+    # This call is referenced from:
     # https://sandbox.payfast.co.za/js/engine_v2.js?version=5.2.6
-    # (See #pay-with-wallet click handler.)
+    # (See the #pay-with-wallet click handler.)
     url = sandbox_process_url + '/payment_method?{}={}'.format(session_type, session_id)
     response = requests.post(url, {'selected_method': selected_method})
     response.raise_for_status()
@@ -97,7 +99,7 @@ def test_process_empty():  # type: () -> None
     """
     Submitting an empty payment request fails.
     """
-    response = sandbox_process_post({})
+    response = post_sandbox_checkout({})
     assert {
         'payment_summary': 'Payment total R ZAR',
         'notice': dedent("""\
@@ -138,7 +140,7 @@ def do_complete_payment(
         assert 'signature' not in process_data, process_data
         process_data['signature'] = api.checkout_signature(process_data)
 
-    response1 = sandbox_process_post(process_data)
+    response1 = post_sandbox_checkout(process_data)
     parsed1 = parse_payfast_page(response1)
     assert {
         'session_type': 'p-sb',
@@ -149,7 +151,7 @@ def do_complete_payment(
     } == parsed1
 
     # Step 2: Complete payment.
-    response2 = sandbox_payment_post(
+    response2 = post_sandbox_payment(
         parsed1['session_type'],
         parsed1['session_id'],
         parsed1['payment_method'],
