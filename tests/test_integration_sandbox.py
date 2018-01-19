@@ -223,15 +223,7 @@ def do_payment(
         expected = {name: value.strip(api.CHECKOUT_SIGNATURE_IGNORED_WHITESPACE)
                     for (name, value) in checkout_data.items()}
 
-        # Expected fees:
-        sandbox_fee_factor = decimal.Decimal('0.0228')
-        cents = decimal.Decimal('0.00')  # For rounding to cents
-
-        expected_amount_gross = decimal.Decimal(checkout_data['amount'].strip()).quantize(cents)
-        # Round the fee to floor, not nearest.
-        expected_amount_fee = ((expected_amount_gross * sandbox_fee_factor)
-                               .quantize(cents, rounding=decimal.ROUND_FLOOR))
-        expected_amount_net = (expected_amount_gross - expected_amount_fee).quantize(cents)
+        expected_amount_gross = '{:.2f}'.format(decimal.Decimal(checkout_data['amount'].strip()))
 
         expected_signature = api.itn_signature(itn_data)
         assert {
@@ -241,10 +233,9 @@ def do_payment(
             'item_name': expected.get('item_name', 'MISSING'),
             'item_description': expected.get('item_description', ''),
 
-            'amount_gross': str(expected_amount_gross),
-            # Payfast does not use negative zeroes: "+ 0" to coerce negative zeroes to positive.
-            'amount_fee': str(-expected_amount_fee + 0),
-            'amount_net': str(expected_amount_net + 0),
+            'amount_gross': expected_amount_gross,
+            'amount_fee': itn_data.get('amount_fee', 'MISSING'),
+            'amount_net': itn_data.get('amount_net', 'MISSING'),
 
             'custom_str1': expected.get('custom_str1', ''),
             'custom_str2': expected.get('custom_str2', ''),
@@ -378,40 +369,3 @@ def test_checkout_signature_ignored_whitespace(leading, trailing):  # type: (str
         whitespaced_data[name] = whitespaced_data[name].strip('\N{NO-BREAK SPACE}')
 
     do_complete_payment(whitespaced_data, sign_checkout=True, enable_itn=True)
-
-
-@requires_itn_configured
-def test_amount_less_than_one_cent():  # type: () -> None
-    """
-    Handling of amounts less than one cent.
-
-    (This rounds the fee to a positive zero, instead of negative.)
-    """
-    checkout_data = {
-        'amount': '0.001',
-        'item_name': 'Flux capacitor',
-    }
-    do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
-
-
-@requires_itn_configured
-def test_fee_rounding_amount_nearest():  # type: () -> None
-    """
-    """
-    checkout_data = {
-        'amount': '0.995',  # This should be rounded up, not down.
-        'item_name': 'Flux capacitor',
-    }
-    do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
-
-
-@requires_itn_configured
-def test_fee_rounding_fee_floor():  # type: () -> None
-    """
-    The PayFast sandbox rounds fees down, not to nearest.
-    """
-    checkout_data = {
-        'amount': '0.66',  # This will result in a fee that should be rounded down, not up.
-        'item_name': 'Flux capacitor',
-    }
-    do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
