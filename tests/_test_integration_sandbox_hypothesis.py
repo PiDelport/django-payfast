@@ -99,8 +99,8 @@ def st_checkout_data(draw):  # type: (Callable) -> Mapping[str, str]
         # 'notify_url',
 
         # Buyer Detail
-        'name_first': valid_text(max_size=100),
-        'name_last': valid_text(max_size=100),
+        'name_first': valid_text(max_utf8_size=100),
+        'name_last': valid_text(max_utf8_size=100),
         # 'email_address',
         # 'cell_number',
 
