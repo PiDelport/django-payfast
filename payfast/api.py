@@ -175,13 +175,36 @@ def _sign_fields(signable_fields):  # type: (SignableFields) -> str
     return md5(text.encode('ascii')).hexdigest()
 
 
+#: The checkout signature should ignore these leading and trailing whitespace characters.
+#:
+#: This list is an educated guess based on the PHP trim() function.
+#:
+CHECKOUT_SIGNATURE_IGNORED_WHITESPACE = ''.join([
+    ' ',
+    '\t',
+    '\n',
+    '\r',
+    '\N{LINE TABULATION}',  # '\xa0'
+
+    # XXX: trim() strips '\0', but it's not clear whether to actually strip it here.
+    # We can't really test it, since the endpoint seems to refuse any requests with null values.
+    # '\0',
+])
+
+
 def checkout_signature(checkout_data):  # type: (Mapping[str, str]) -> str
     """
     Calculate the signature of a checkout process submission.
     """
-    # Checkout process omit fields with empty values.
+    # Omits fields with empty values.
     included_fields = _drop_non_signature_fields(checkout_data, include_empty=False)
-    signable_fields = _prepare_signable_fields(checkout_signature_field_order, included_fields)
+    # Strip ignored whitespace from values.
+    stripped_fields = {
+        name: value.strip(CHECKOUT_SIGNATURE_IGNORED_WHITESPACE)
+        for (name, value) in included_fields.items()
+    }
+
+    signable_fields = _prepare_signable_fields(checkout_signature_field_order, stripped_fields)
     return _sign_fields(signable_fields)
 
 

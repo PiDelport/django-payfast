@@ -245,3 +245,48 @@ def test_minimal_payment_itn():  # type: () -> None
         'merchant_id': '10000100',
         'signature': calculated_signature,
     }
+
+
+@pytest.mark.parametrize(('leading', 'trailing'), [
+
+    # These whitespace characters should be ignored:
+    ('', ' '),
+    (' ', ''),
+    (' ', ' '),
+    ('\t', '\t'),
+    ('\n', '\n'),
+    ('\r', '\r'),
+    ('\N{LINE TABULATION}', '\N{LINE TABULATION}'),  # '\x0b'
+
+    # XXX: PayFast seems to refuse null-containing values, so we can't test their signatures.
+    # ('\0', '\0'),
+
+    # These whitespace characters should be included:
+    ('\N{NO-BREAK SPACE}', '\N{NO-BREAK SPACE}'),  # '\xa0'
+
+])
+def test_checkout_signature_ignored_whitespace(leading, trailing):  # type: (str, str) -> None
+    """
+    Checkout signatures should ignore certain leading and trailing whitespace in values.
+    """
+    checkout_data = {
+        'merchant_id': '10000100',
+        'merchant_key': '46f0cd694581a',
+        'amount': '123',
+        'item_name': 'Flux capacitor',
+        'item_description': '1.21 jigowatts',
+        'name_first': 'Emmet',
+        'name_last': 'Brown',
+        # TODO: Cover other field values?
+    }
+    whitespaced_data = {
+        name: (leading + value + trailing)
+        for (name, value) in checkout_data.items()
+    }
+
+    # Special-case handling: these three fields accept other whitespace, but not NBSP.
+    # Just revert them for testing (but let the other fields still contain NBSP).
+    for name in ['merchant_id', 'merchant_key', 'amount']:
+        whitespaced_data[name] = whitespaced_data[name].strip('\N{NO-BREAK SPACE}')
+
+    do_complete_payment(whitespaced_data)
