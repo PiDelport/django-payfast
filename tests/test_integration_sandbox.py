@@ -119,9 +119,9 @@ def do_complete_payment(
     """
     # Values for result assertions:
     amount = '{:.2f}'.format(Decimal(data['amount']))
-    item_name = data['item_name']
+    stripped_item_name = data['item_name'].strip()  # PayFast strips this for display.
     expected_payment_summary = (
-        '{} Payment total R {} ZAR'.format(item_name, amount)
+        '{} Payment total R {} ZAR'.format(stripped_item_name, amount)
     )
 
     # Step 1: Request payment.
