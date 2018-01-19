@@ -226,8 +226,14 @@ def do_payment(
         # Expected fees:
         sandbox_fee_factor = decimal.Decimal('0.0228')
         expected_amount_gross = decimal.Decimal(checkout_data['amount'].strip())
-        expected_amount_fee = expected_amount_gross * sandbox_fee_factor
-        expected_amount_net = expected_amount_gross - expected_amount_fee
+        expected_amount_fee_positive = expected_amount_gross * sandbox_fee_factor
+        expected_amount_net = expected_amount_gross - expected_amount_fee_positive
+        # XXX: PayFast renders the fee as negative, *unless* it rounded to zero cents;
+        # in that case, it's rendered as a positive '0.00', rather than '-0.00' (per Decimal).
+        # The following quantize and "+ 0" gets rid of any negative zero sign on the rounded fee.
+        expected_amount_fee_negative = ((-expected_amount_fee_positive)
+                                        .quantize(decimal.Decimal('0.00'))
+                                        + 0)
 
         expected_signature = api.itn_signature(itn_data)
         assert {
@@ -238,7 +244,7 @@ def do_payment(
             'item_description': expected.get('item_description', ''),
 
             'amount_gross': '{:.2f}'.format(expected_amount_gross),
-            'amount_fee': '{:.2f}'.format(-expected_amount_fee),  # Note: Represented negated here.
+            'amount_fee': '{:.2f}'.format(expected_amount_fee_negative),
             'amount_net': '{:.2f}'.format(expected_amount_net),
 
             'custom_str1': expected.get('custom_str1', ''),
@@ -373,3 +379,17 @@ def test_checkout_signature_ignored_whitespace(leading, trailing):  # type: (str
         whitespaced_data[name] = whitespaced_data[name].strip('\N{NO-BREAK SPACE}')
 
     do_complete_payment(whitespaced_data, sign_checkout=True, enable_itn=True)
+
+
+@requires_itn_configured
+def test_amount_less_than_one_cent():  # type: () -> None
+    """
+    Handling of amounts less than one cent.
+
+    (This rounds the fee to a positive zero, instead of negative.)
+    """
+    checkout_data = {
+        'amount': '0.001',
+        'item_name': 'Flux capacitor',
+    }
+    do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
