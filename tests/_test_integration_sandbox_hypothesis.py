@@ -174,6 +174,14 @@ def test_complete_payment(checkout_data):  # type: (Mapping[str, str]) -> None
     # XXX: PayFast seems to normalise '\r' -> '\n' ?
     assume('\r' not in checkout_data['item_name'])
 
+    # XXX: See test_weird_blocked_string
+    _affected_names = [
+        'custom_str1', 'custom_str2', 'custom_str3', 'custom_str4', 'custom_str5',
+        'name_first', 'name_last',
+    ]
+    assume(not any('"!0' in checkout_data.get(name, '')
+                   for name in _affected_names))
+
     try:
         print('XXX Starting payment...', checkout_data)
         do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)

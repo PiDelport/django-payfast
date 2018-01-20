@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import decimal
 import os
+from http import HTTPStatus
 from queue import Queue  # noqa: F401
 from textwrap import dedent
 from typing import Dict, Iterable, Tuple, Mapping  # noqa: F401
@@ -413,3 +414,36 @@ def test_empty_zero_field_weirdness(
     }
     checkout_data.update(partial_checkout_data)
     do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
+
+
+@requires_itn_configured
+@pytest.mark.parametrize('weird_string', [
+    '"!0',
+    ' " ! 0 ',
+])
+def test_weird_blocked_string(weird_string):  # type: (str) -> None
+    """
+    The value '"!0' seems to be blocked in certain fields?
+
+    Its presence causes a HTTP 403 Forbidden.
+
+    Affected:
+     * custom_str*
+     * name_*
+
+    Not affected:
+     * item_name
+     * item_description
+    """
+    checkout_data = {
+        'amount': '1',
+        'item_name': 'Flux capacitor',
+        'custom_str1': weird_string,
+    }
+    try:
+        do_complete_payment(checkout_data, sign_checkout=True, enable_itn=False)
+    except requests.HTTPError as e:
+        response = e.response  # type: requests.Response
+        assert response.status_code == HTTPStatus.FORBIDDEN
+    else:
+        pytest.fail('Unexpected success!')
