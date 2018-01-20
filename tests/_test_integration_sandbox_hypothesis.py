@@ -14,6 +14,7 @@ from typing import Dict, Mapping, Callable, List  # noqa: F401
 from hypothesis import given, assume, settings, HealthCheck
 from hypothesis import strategies as st
 
+from payfast import api
 from test_integration_sandbox import (
     sandbox_merchant_credentials,
     requires_itn_configured,
@@ -78,11 +79,15 @@ def st_checkout_data(draw):  # type: (Callable) -> Mapping[str, str]
                  .filter(lambda amount: amount != 0)  # The amount can't be exactly zero.
                  .map(str))
 
+    st_item_name = (valid_text(min_size=1, max_utf8_size=100)
+                    # For item names to be valid, also ensure that it doesn't strip to empty.
+                    .filter(lambda s: s.strip(api.CHECKOUT_SIGNATURE_IGNORED_WHITESPACE)))
+
     # The required keys:
     checkout_data = dict(sandbox_merchant_credentials)
     checkout_data.update({
         'amount': draw(st_amount),
-        'item_name': draw(valid_text(min_size=1, max_utf8_size=100)),
+        'item_name': draw(st_item_name),
     })
 
     # The m_payment_id field has a specific limited character repertoire.
