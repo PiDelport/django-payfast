@@ -174,7 +174,7 @@ def st_checkout_data(draw):  # type: (Callable) -> Mapping[str, str]
 def test_complete_payment(checkout_data):  # type: (Mapping[str, str]) -> None
     assert required_checkout_fields <= checkout_data.keys()
 
-    # XXX: PayFast treats '0' (and values that strip to it) this as empty?
+    # XXX: PayFast treats '0' (and values that strip to it) as empty?
     assume(checkout_data['item_name'].strip(api.CHECKOUT_SIGNATURE_IGNORED_WHITESPACE) != '0')
 
     # XXX: PayFast seems to normalise '\r' -> '\n' ?
