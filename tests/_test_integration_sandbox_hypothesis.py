@@ -19,6 +19,7 @@ from test_integration_sandbox import (
     sandbox_merchant_credentials,
     requires_itn_configured,
     do_complete_payment,
+    weird_strings,
 )
 
 
@@ -180,12 +181,13 @@ def test_complete_payment(checkout_data):  # type: (Mapping[str, str]) -> None
     # XXX: PayFast seems to normalise '\r' -> '\n' ?
     assume('\r' not in checkout_data['item_name'])
 
-    # XXX: See test_weird_blocked_string
+    # XXX: See test_weird_blocked_strings
     _affected_names = [
         'custom_str1', 'custom_str2', 'custom_str3', 'custom_str4', 'custom_str5',
         'name_first', 'name_last',
     ]
-    assume(not any('"!0' in checkout_data.get(name, '')
+    assume(not any(weird_string in checkout_data.get(name, '')
+                   for weird_string in weird_strings
                    for name in _affected_names))
 
     try:

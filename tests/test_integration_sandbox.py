@@ -416,16 +416,24 @@ def test_empty_zero_field_weirdness(
     do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
 
 
-@requires_itn_configured
-@pytest.mark.parametrize('weird_string', [
+weird_strings = [
+    # "!0
     '"!0',
     ' " ! 0 ',
-])
-def test_weird_blocked_string(weird_string):  # type: (str) -> None
-    """
-    The value '"!0' seems to be blocked in certain fields?
 
-    Its presence causes a HTTP 403 Forbidden.
+    # )(&
+    ')(\x12&',
+    ')(&',
+]
+
+
+@requires_itn_configured
+@pytest.mark.parametrize('weird_string', weird_strings)
+def test_weird_blocked_strings(weird_string):  # type: (str) -> None
+    """
+    These values seem to be blocked in certain fields?
+
+    Their presence causes a HTTP 403 Forbidden.
 
     Affected:
      * custom_str*
