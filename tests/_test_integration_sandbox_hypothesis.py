@@ -79,7 +79,7 @@ def st_checkout_data(draw):  # type: (Callable) -> Mapping[str, str]
                  .filter(lambda amount: amount != 0)  # The amount can't be exactly zero.
                  .map(str))
 
-    st_item_name = (valid_text(min_size=1, max_utf8_size=100)
+    st_item_name = (valid_text(min_size=1, average_size=10, max_utf8_size=100)
                     # For item names to be valid, also ensure that it doesn't strip to empty.
                     .filter(lambda s: s.strip(api.CHECKOUT_SIGNATURE_IGNORED_WHITESPACE)))
 
@@ -104,26 +104,26 @@ def st_checkout_data(draw):  # type: (Callable) -> Mapping[str, str]
         # 'notify_url',
 
         # Buyer Detail
-        'name_first': valid_text(max_utf8_size=100),
-        'name_last': valid_text(max_utf8_size=100),
+        'name_first': valid_text(average_size=10, max_utf8_size=100),
+        'name_last': valid_text(average_size=10, max_utf8_size=100),
         # 'email_address',
         # 'cell_number',
 
         # Transaction Details
-        'm_payment_id': st.text(alphabet=m_payment_id_alphabet, max_size=100),
+        'm_payment_id': st.text(alphabet=m_payment_id_alphabet, average_size=10, max_size=100),
         # Already required: 'amount',
         # Already required: 'item_name',
-        'item_description': valid_text(max_utf8_size=255),
-        'custom_int1': st.text(alphabet=string.digits, max_size=255),
-        'custom_int2': st.text(alphabet=string.digits, max_size=255),
-        'custom_int3': st.text(alphabet=string.digits, max_size=255),
-        'custom_int4': st.text(alphabet=string.digits, max_size=255),
-        'custom_int5': st.text(alphabet=string.digits, max_size=255),
-        'custom_str1': valid_text(max_utf8_size=255),
-        'custom_str2': valid_text(max_utf8_size=255),
-        'custom_str3': valid_text(max_utf8_size=255),
-        'custom_str4': valid_text(max_utf8_size=255),
-        'custom_str5': valid_text(max_utf8_size=255),
+        'item_description': valid_text(average_size=20, max_utf8_size=255),
+        'custom_int1': st.text(alphabet=string.digits, average_size=10, max_size=255),
+        'custom_int2': st.text(alphabet=string.digits, average_size=10, max_size=255),
+        'custom_int3': st.text(alphabet=string.digits, average_size=10, max_size=255),
+        'custom_int4': st.text(alphabet=string.digits, average_size=10, max_size=255),
+        'custom_int5': st.text(alphabet=string.digits, average_size=10, max_size=255),
+        'custom_str1': valid_text(average_size=10, max_utf8_size=255),
+        'custom_str2': valid_text(average_size=10, max_utf8_size=255),
+        'custom_str3': valid_text(average_size=10, max_utf8_size=255),
+        'custom_str4': valid_text(average_size=10, max_utf8_size=255),
+        'custom_str5': valid_text(average_size=10, max_utf8_size=255),
 
         # Transaction Options
         # 'email_confirmation',
