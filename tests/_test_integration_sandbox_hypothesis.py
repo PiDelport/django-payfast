@@ -11,7 +11,7 @@ import string
 import time
 from typing import Dict, Mapping, Callable, List  # noqa: F401
 
-from hypothesis import given, assume, settings, HealthCheck
+from hypothesis import given, assume, settings, HealthCheck, Verbosity
 from hypothesis import strategies as st
 
 from payfast import api
@@ -168,6 +168,7 @@ def st_checkout_data(draw):  # type: (Callable) -> Mapping[str, str]
     deadline=10000,
     timeout=60 * 60,  # 1 hour
     suppress_health_check=[HealthCheck.hung_test],
+    verbosity=Verbosity.verbose,
 )
 @given(st_checkout_data())
 def test_complete_payment(checkout_data):  # type: (Mapping[str, str]) -> None
