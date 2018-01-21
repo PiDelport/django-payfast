@@ -196,15 +196,15 @@ def checkout_signature(checkout_data):  # type: (Mapping[str, str]) -> str
     """
     Calculate the signature of a checkout process submission.
     """
-    # Omits fields with empty values.
-    included_fields = _drop_non_signature_fields(checkout_data, include_empty=False)
     # Strip ignored whitespace from values.
     stripped_fields = {
         name: value.strip(CHECKOUT_SIGNATURE_IGNORED_WHITESPACE)
-        for (name, value) in included_fields.items()
+        for (name, value) in checkout_data.items()
     }
+    # Omits fields with empty values.
+    included_fields = _drop_non_signature_fields(stripped_fields, include_empty=False)
 
-    signable_fields = _prepare_signable_fields(checkout_signature_field_order, stripped_fields)
+    signable_fields = _prepare_signable_fields(checkout_signature_field_order, included_fields)
     return _sign_fields(signable_fields)
 
 

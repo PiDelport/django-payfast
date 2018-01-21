@@ -455,3 +455,17 @@ def test_weird_blocked_strings(weird_string):  # type: (str) -> None
         assert response.status_code == HTTPStatus.FORBIDDEN
     else:
         pytest.fail('Unexpected success!')
+
+
+@requires_itn_configured
+def test_mixed_empty_whitespace_fields():  # type: () -> None
+    """
+    One field empty, one with whitespace.
+    """
+    checkout_data = {
+        'amount': '123',
+        'item_name': 'Flux capacitor',
+        'name_first': '',
+        'name_last': ' ',
+    }
+    do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
