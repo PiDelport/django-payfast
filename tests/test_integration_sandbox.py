@@ -161,7 +161,13 @@ def do_checkout(
         # We may be testing a value that isn't Decimal-parseable;
         # in that case, just expect it unmodified.
         expected_amount = checkout_data['amount']
-    expected_item_name = checkout_data['item_name'].strip()  # PayFast strips this for display.
+
+    expected_item_name = (
+        checkout_data['item_name']
+        .strip()  # PayFast strips this for display.
+        .replace('\r', '\n')  # PayFast normalises '\r' to '\n' ?
+    )
+
     expected_payment_summary = (
         '{} Payment total R {} ZAR'.format(expected_item_name, expected_amount)
         .strip()  # Strip to handle item names that render empty.
@@ -467,5 +473,17 @@ def test_mixed_empty_whitespace_fields():  # type: () -> None
         'item_name': 'Flux capacitor',
         'name_first': '',
         'name_last': ' ',
+    }
+    do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
+
+
+@requires_itn_configured
+def test_item_name_payment_summary_CR_LF():  # type: () -> None
+    """
+    Handle PayFast translating '\r' to '\n' in the item name in the payment summary.
+    """
+    checkout_data = {
+        'amount': '123',
+        'item_name': 'Flux\rcapacitor\r',
     }
     do_complete_payment(checkout_data, sign_checkout=True, enable_itn=True)
