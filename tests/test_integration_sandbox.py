@@ -436,6 +436,9 @@ weird_strings = [
     ')#(!',
     ')(%!'
     ')(!',
+
+    # Percent-encoded null byte
+    '%00',
 ]
 
 
