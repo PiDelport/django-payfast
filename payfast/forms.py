@@ -103,8 +103,10 @@ class PayFastForm(HiddenForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         if user:
-            kwargs['initial'].setdefault('name_first', user.first_name)
-            kwargs['initial'].setdefault('name_last', user.last_name)
+            if conf.GET_USER_FIRST_NAME is not None:
+                kwargs['initial'].setdefault('name_first', conf.GET_USER_FIRST_NAME(user))
+            if conf.GET_USER_LAST_NAME is not None:
+                kwargs['initial'].setdefault('name_last', conf.GET_USER_LAST_NAME(user))
 
             # Django 1.11 adds AbstractBaseUser.get_email_field_name()
             email_address = (user.email if django.VERSION < (1, 11) else

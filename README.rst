@@ -64,6 +64,17 @@ You also have to setup your PayFast account on payfast.co.za. Login into the
 admin panel, go to 'My Account -> Integration', enable the Instant Transaction
 Notification (ITN) and provide the Notify URL.
 
+When passing a user to `PayFastForm`, the form will by default look for the
+`first_name` and `last_name` fields on the user. If you're using a custom user
+model with different field names, you can customise how the fields are looked
+up by setting these callables::
+
+    PAYFAST_GET_USER_FIRST_NAME = lambda user: user.my_first_name()
+    PAYFAST_GET_USER_LAST_NAME = lambda user: user.my_last_name()
+
+Alternatively, set these to `None` to disable initialising the PayFast
+`name_first` and `name_last` fields from the user.
+
 Usage
 =====
 

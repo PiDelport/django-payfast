@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from operator import attrgetter
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
@@ -41,3 +43,7 @@ DEFAULT_PAYFAST_IP_ADDRESSES = [
     '197.97.145.144/28',
     '41.74.179.192/27',
 ]
+
+
+GET_USER_FIRST_NAME = getattr(settings, 'PAYFAST_GET_USER_FIRST_NAME', attrgetter('first_name'))
+GET_USER_LAST_NAME = getattr(settings, 'PAYFAST_GET_USER_LAST_NAME', attrgetter('last_name'))
