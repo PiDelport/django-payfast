@@ -90,7 +90,7 @@ def parse_payfast_page(response):  # type: (requests.Response) -> Dict[str, str]
         if wa_tab is not None:
             yield ('payment_method', (wa_tab.attrib['data-methodkey']))
             pay_button = find_id(wa_tab, 'pay-with-wallet')
-            yield ('pay_button', text_collapsed(pay_button))
+            yield ('pay_button', pay_button.attrib['value'])
 
     return dict(_parse())
 
