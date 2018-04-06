@@ -12,10 +12,11 @@ matrix:
     - { python: '3.6', env: TOXENV=py36-dj1.8 }
     - { python: '3.6', env: TOXENV=py36-dj1.10 }
     - { python: '3.6', env: TOXENV=py36-dj1.11 }
+    - { python: '3.6', env: TOXENV=py36-dj2.0 }
 
-    # Report coverage for the latest Python & Django versions.
+    # Report coverage for the Python 2 and 3, and latest supported Django versions.
     - { python: '2.7', env: TOXENV=py27-dj1.11-codecov }
-    - { python: '3.6', env: TOXENV=py36-dj1.11-codecov }
+    - { python: '3.6', env: TOXENV=py36-dj2.0-codecov }
     # Also report coverage for Django 1.8, to hit backward-compatibility code.
     - { python: '3.6', env: TOXENV=py36-dj1.8-codecov }
 

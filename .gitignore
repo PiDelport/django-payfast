@@ -13,7 +13,7 @@ dist/
 .tox
 
 # pytest cache directory
-.cache/
+.pytest_cache/
 
 # Hypothesis database
 .hypothesis/
