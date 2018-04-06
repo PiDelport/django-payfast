@@ -9,14 +9,11 @@ __pycache__
 build/
 dist/
 
-# Tox working directory
-.tox
-
-# pytest cache directory
-.pytest_cache/
-
-# Hypothesis database
+# Testing tools
 .hypothesis/
+.mypy_cache/
+.pytest_cache/
+.tox
 
 # Coverage reports
 .coverage
