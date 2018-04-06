@@ -179,8 +179,7 @@ class NotifyTest(TestCase):
         notify_data['signature'] = api.itn_signature(notify_data)
         response = self.client.post(notify_url(), notify_data)
         expected_amount = ('100' if django.VERSION < (1, 8) else
-                           '100.00' if django.VERSION < (2, 0) else
-                           '100')
+                           '100.00')
         self._assertBadRequest(response, {
             'amount_gross': [{'code': '', 'message': ('Amount is not the same: {} != None'
                                                       .format(expected_amount))}],
@@ -195,9 +194,7 @@ class NotifyTest(TestCase):
             'amount_gross: Amount is not the same: {} != None'.format(
                 '100' if django.VERSION < (1, 8) else
                 # Django 1.8+ returns more precise DecimalField values
-                '100.00' if django.VERSION < (2, 0) else
-                # Django 2.0+ returns less precise DecimalField values again.
-                '100'
+                '100.00'
             ),
             'item_name: This field is required.',
             'merchant_id: This field is required.',
