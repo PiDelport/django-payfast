@@ -61,6 +61,66 @@ class PayFastFormTest(TestCase):
         }, form.initial)
         self.assertEqual(user, form.order.user)
 
+    @override_settings(
+        PAYFAST_GET_USER_FIRST_NAME=lambda user: user.username + ' First Name',
+        PAYFAST_GET_USER_LAST_NAME=lambda user: user.username + ' Last Name',
+    )
+    def test_init_with_user_custom_names(self):
+        user = User.objects.create(
+            username='example_user',
+            email='user@example.com',
+            first_name='First',
+            last_name='Last',
+        )
+        form = PayFastForm(
+            initial={
+                'amount': 100,
+                'item_name': 'Example item',
+            },
+            user=user
+        )
+        self.assertEqual({
+            'amount': 100,
+            'email_address': 'user@example.com',
+            'item_name': 'Example item',
+            'm_payment_id': '1',
+            'merchant_id': '10000100',
+            'merchant_key': '46f0cd694581a',
+            'name_first': 'example_user First Name',
+            'name_last': 'example_user Last Name',
+            'notify_url': notify_url(),
+        }, form.initial)
+        self.assertEqual(user, form.order.user)
+
+    @override_settings(
+        PAYFAST_GET_USER_FIRST_NAME=None,
+        PAYFAST_GET_USER_LAST_NAME=None,
+    )
+    def test_init_with_user_custom_names_disabled(self):
+        user = User.objects.create(
+            username='example_user',
+            email='user@example.com',
+            first_name='First',
+            last_name='Last',
+        )
+        form = PayFastForm(
+            initial={
+                'amount': 100,
+                'item_name': 'Example item',
+            },
+            user=user
+        )
+        self.assertEqual({
+            'amount': 100,
+            'email_address': 'user@example.com',
+            'item_name': 'Example item',
+            'm_payment_id': '1',
+            'merchant_id': '10000100',
+            'merchant_key': '46f0cd694581a',
+            'notify_url': notify_url(),
+        }, form.initial)
+        self.assertEqual(user, form.order.user)
+
 
 def _test_data():
     return OrderedDict([
