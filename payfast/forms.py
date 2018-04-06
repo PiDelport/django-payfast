@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import sys
 from ipaddress import ip_address, ip_network
 
+from django.contrib.auth import get_user_model
 from six import text_type as str
 from six.moves.urllib_parse import urljoin
 
@@ -104,7 +105,11 @@ class PayFastForm(HiddenForm):
         if user:
             kwargs['initial'].setdefault('name_first', user.first_name)
             kwargs['initial'].setdefault('name_last', user.last_name)
-            kwargs['initial'].setdefault('email_address', user.email)
+
+            # Django 1.11 adds AbstractBaseUser.get_email_field_name()
+            email_address = (user.email if django.VERSION < (1, 11) else
+                             getattr(user, get_user_model().get_email_field_name()))
+            kwargs['initial'].setdefault('email_address', email_address)
 
         kwargs['initial'].setdefault('notify_url', notify_url())
         kwargs['initial'].setdefault('merchant_id', conf.MERCHANT_ID)
