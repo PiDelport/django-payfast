@@ -2,7 +2,9 @@ from __future__ import unicode_literals
 
 import sys
 from ipaddress import ip_address, ip_network
+from operator import attrgetter
 
+from django.contrib.auth import get_user_model
 from six import text_type as str
 from six.moves.urllib_parse import urljoin
 
@@ -100,11 +102,21 @@ class PayFastForm(HiddenForm):
     signature = forms.CharField()
 
     def __init__(self, *args, **kwargs):
+        get_first_name = getattr(settings, 'PAYFAST_GET_USER_FIRST_NAME', attrgetter('first_name'))
+        get_last_name = getattr(settings, 'PAYFAST_GET_USER_LAST_NAME', attrgetter('last_name'))
+
         user = kwargs.pop('user', None)
         if user:
-            kwargs['initial'].setdefault('name_first', user.first_name)
-            kwargs['initial'].setdefault('name_last', user.last_name)
-            kwargs['initial'].setdefault('email_address', user.email)
+
+            if get_first_name is not None:
+                kwargs['initial'].setdefault('name_first', get_first_name(user))
+            if get_last_name is not None:
+                kwargs['initial'].setdefault('name_last', get_last_name(user))
+
+            # Django 1.11 adds AbstractBaseUser.get_email_field_name()
+            email_address = (user.email if django.VERSION < (1, 11) else
+                             getattr(user, get_user_model().get_email_field_name()))
+            kwargs['initial'].setdefault('email_address', email_address)
 
         kwargs['initial'].setdefault('notify_url', notify_url())
         kwargs['initial'].setdefault('merchant_id', conf.MERCHANT_ID)
