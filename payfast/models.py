@@ -63,7 +63,7 @@ class PayFastOrder(six.with_metaclass(readable_models.ModelBase, models.Model)):
     updated_at = models.DateTimeField(auto_now=True)
     request_ip = models.GenericIPAddressField(null=True, blank=True)
     debug_info = models.CharField(max_length=255, null=True, blank=True)
-    trusted = models.NullBooleanField(default=None)
+    trusted = models.BooleanField(null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
                              on_delete=models.CASCADE)
 
