@@ -89,16 +89,19 @@ else:
                     'django.template.context_processors.debug',
                     'django.template.context_processors.request',
                     'django.contrib.auth.context_processors.auth',
+                    'django.contrib.messages.context_processors.messages',
                 ],
             }
         }
     ]
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'django.contrib.messages',
     'django.contrib.admin',
     'payfast',
 ]
