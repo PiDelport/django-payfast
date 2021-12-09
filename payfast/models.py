@@ -1,11 +1,20 @@
 from __future__ import unicode_literals
 
 import six
+from django import VERSION as DJANGO_VERSION
 from django.db import models
 from django.conf import settings
-from django.utils.encoding import python_2_unicode_compatible
+# from django.utils.encoding import python_2_unicode_compatible
 
 from payfast import readable_models
+
+
+# Compatibility decorator removed in Django 3
+if DJANGO_VERSION[0] < 3:
+    from django.utils.encoding import python_2_unicode_compatible
+else:
+    def python_2_unicode_compatible(c):
+        return c
 
 
 @python_2_unicode_compatible
@@ -54,7 +63,7 @@ class PayFastOrder(six.with_metaclass(readable_models.ModelBase, models.Model)):
     updated_at = models.DateTimeField(auto_now=True)
     request_ip = models.GenericIPAddressField(null=True, blank=True)
     debug_info = models.CharField(max_length=255, null=True, blank=True)
-    trusted = models.NullBooleanField(default=None)
+    trusted = models.BooleanField(null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
                              on_delete=models.CASCADE)
 
