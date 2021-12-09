@@ -1,8 +1,8 @@
-from django.conf.urls import url
+from django.urls import re_path
 
 from payfast.views import notify_handler
 
 
 urlpatterns = [
-    url('^notify/$', notify_handler, name='payfast_notify'),
+    re_path(r'^notify/$', notify_handler, name='payfast_notify'),
 ]
